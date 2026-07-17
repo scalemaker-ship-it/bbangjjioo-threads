@@ -206,10 +206,10 @@ TOPICS = {
             "바디 각질이랑 트러블 관리 루틴을 바꿔본 이야기",
         ],
     },
-    6: {  # 토요일 — 소소한 자기관리 일상 (가벼운 톤)
-        "name": "주말 자기관리 일상",
+    6: {  # 소소한 자기관리 일상 (가벼운 톤)
+        "name": "소소한 자기관리 일상",
         "subs": [
-            "주말 아침 루틴으로 한 주를 리셋한 하루",
+            "아침 루틴 하나로 하루를 리셋한 이야기",
             "반신욕이나 마사지로 오랜만에 나를 챙긴 날",
             "건강식 챙겨 먹으려다 결국 무너진 이야기",
             "오랜만에 푹 자고 개운하게 일어난 아침",
@@ -219,10 +219,29 @@ TOPICS = {
     },
 }
 
+# ─────────────────────────────────────────────────────────────
+# 하루 2회 발행 — 시간대별 주제 배정
+#   아침(07~10시): 하루를 시작하며 실천하는 주제 (운동 / 재테크 / 스트레스·수면)
+#   저녁(22시 이후): 하루를 마무리하며 돌아보는 주제 (피부 / 바디 / 소소한 일상)
+# 각 주제가 주 2회씩 고르게 돌도록 배치. 월~토, 일요일은 쉼.
+# ─────────────────────────────────────────────────────────────
+SCHEDULE = {
+    1: {"morning": 1, "evening": 3},  # 월: 운동 / 얼굴 피부
+    2: {"morning": 2, "evening": 5},  # 화: 재테크 / 바디·두피
+    3: {"morning": 4, "evening": 6},  # 수: 스트레스·수면 / 소소한 일상
+    4: {"morning": 1, "evening": 5},  # 목: 운동 / 바디·두피
+    5: {"morning": 2, "evening": 3},  # 금: 재테크 / 얼굴 피부
+    6: {"morning": 4, "evening": 6},  # 토: 스트레스·수면 / 소소한 일상
+}
 
-# 요일별 '꿀팁형(B)' 확률. 피부·바디·운동은 알려줄 방법이 많아 비중을 높이고,
+# 주제별 '꿀팁형(B)' 확률. 피부·바디·운동은 알려줄 방법이 많아 비중을 높이고,
 # 감정이 큰 스트레스/수면·재테크는 고민형(A) 비중을 높인다.
 TIP_PROBABILITY = {1: 0.6, 2: 0.35, 3: 0.7, 4: 0.4, 5: 0.7, 6: 0.5}
+
+
+def current_slot(now: datetime) -> str:
+    """KST 기준 오전이면 morning, 오후/밤이면 evening."""
+    return "morning" if now.hour < 12 else "evening"
 
 FORMAT_WORRY = (
     "이 글의 형식: (A) 고민 나눔형.\n"
@@ -252,14 +271,13 @@ TIP_CLOSERS = [
 ]
 
 
-def build_user_message(topic: dict, today: datetime) -> tuple[str, str]:
-    """요일 소재에서 그날의 서브소재·글 형식을 날짜 시드로 골라 유저 메시지를 만든다."""
-    # 날짜를 시드로 써서 같은 날은 항상 같은 소재·형식(재실행 안정), 날마다 다르게.
-    seed = int(today.strftime("%Y%m%d"))
+def build_user_message(topic: dict, today: datetime, topic_id: int, slot: str) -> tuple[str, str]:
+    """그날·그 시간대의 서브소재·글 형식을 시드로 골라 유저 메시지를 만든다."""
+    # 날짜+시간대를 시드로 → 같은 슬롯 재실행 시 동일(중복 방지), 아침/저녁은 서로 다른 글.
+    seed = int(today.strftime("%Y%m%d")) * 10 + (0 if slot == "morning" else 1)
     rng = random.Random(seed)
     sub = rng.choice(topic["subs"])
-    weekday = today.isoweekday()
-    use_tip = rng.random() < TIP_PROBABILITY.get(weekday, 0.5)
+    use_tip = rng.random() < TIP_PROBABILITY.get(topic_id, 0.5)
     fmt = FORMAT_TIP if use_tip else FORMAT_WORRY
     if use_tip:
         closer = rng.choice(TIP_CLOSERS)
@@ -340,17 +358,27 @@ def main() -> None:
         action="store_true",
         help="게시하지 않고 생성된 글만 출력한다 (검증용).",
     )
+    parser.add_argument(
+        "--slot",
+        choices=["morning", "evening"],
+        help="시간대 강제 지정(테스트용). 미지정 시 현재 KST 시각으로 자동 판별.",
+    )
     args = parser.parse_args()
 
     now = datetime.now(KST)
     weekday = now.isoweekday()  # 월=1 ... 일=7
-    topic = TOPICS.get(weekday)
-    if topic is None:
+    day_plan = SCHEDULE.get(weekday)
+    if day_plan is None:
         print(f"오늘({now:%Y-%m-%d %A})은 게시일이 아닙니다(일요일 쉼). 종료합니다.")
         return
 
-    sub, user_message = build_user_message(topic, now)
-    print(f"[{now:%Y-%m-%d %H:%M KST}] 주제: {topic['name']} / 소재: {sub}")
+    slot = args.slot or current_slot(now)
+    topic_id = day_plan[slot]
+    topic = TOPICS[topic_id]
+
+    sub, user_message = build_user_message(topic, now, topic_id, slot)
+    slot_label = "아침" if slot == "morning" else "저녁"
+    print(f"[{now:%Y-%m-%d %H:%M KST}] {slot_label} / 주제: {topic['name']} / 소재: {sub}")
 
     # 게시 모드에서만 API 키/토큰을 요구한다. (dry-run은 키만 있으면 됨)
     if not args.dry_run:

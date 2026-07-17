@@ -1,12 +1,23 @@
-name: 빵찌 자기관리·재테크·피부 스레드 자동 게시
+name: 빵찌 스레드 자동 게시 (하루 2회)
 
-# 월~토 오전 9시(KST). GitHub Actions 크론은 UTC 기준이라
-# 09:00 KST = 00:00 UTC → "0 0 * * 1-6"
-# (오산 자동화와 동일 시각이지만 완전히 다른 저장소/시크릿으로 분리 운영)
+# 하루 2회 발행. GitHub Actions 크론은 UTC 기준 (KST = UTC+9).
+#   아침: 07:10 KST = 22:10 UTC 전날  → "10 22 * * 0-5"  (KST 월~토)
+#   저녁: 22:10 KST = 13:10 UTC 당일  → "10 13 * * 1-6"  (KST 월~토)
+# 각 실행 시작 시 0~80분 랜덤 지연을 줘서 게시 시각을 사람처럼 분산시킨다.
+#   → 아침은 07:10~08:30 사이(요구: 7~10시), 저녁은 22:10~23:30 사이(요구: 22시 이후)에 게시.
+# 시간대(아침/저녁)는 스크립트가 KST 시각으로 자동 판별해 주제를 고른다.
 on:
   schedule:
-    - cron: "0 0 * * 1-6"
-  workflow_dispatch: {}   # 수동 실행 버튼 (테스트용)
+    - cron: "10 22 * * 0-5"   # 아침 슬롯
+    - cron: "10 13 * * 1-6"   # 저녁 슬롯
+  workflow_dispatch:          # 수동 실행 (테스트용)
+    inputs:
+      slot:
+        description: "시간대 강제 지정 (비우면 현재 시각으로 자동 판별)"
+        required: false
+        type: choice
+        options: ["", "morning", "evening"]
+        default: ""
 
 jobs:
   post:
@@ -21,9 +32,23 @@ jobs:
       - name: 패키지 설치
         run: pip install -r requirements.txt
 
+      # 크론 실행일 때만 랜덤 지연 (수동 실행은 즉시)
+      - name: 랜덤 지연 (게시 시각 분산)
+        if: github.event_name == 'schedule'
+        run: |
+          DELAY=$((RANDOM % 4800))   # 0~80분
+          echo "약 $((DELAY / 60))분 대기 후 게시합니다."
+          sleep $DELAY
+
       - name: 스레드 게시
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
-        run: python threads_post.py
+          SLOT: ${{ inputs.slot }}
+        run: |
+          if [ -n "$SLOT" ]; then
+            python threads_post.py --slot "$SLOT"
+          else
+            python threads_post.py
+          fi
