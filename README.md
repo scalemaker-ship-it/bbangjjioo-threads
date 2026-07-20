@@ -58,51 +58,43 @@
 각 요일마다 6개의 서브소재 풀이 있고, **날짜를 시드로** 하나를 골라 매일 다른 이야기를 씁니다.
 같은 날 재실행해도 같은 소재가 나와 안전합니다(중복 게시 방지).
 
-## 현재 상태 (2026-07-20)
+## 현재 상태 — 가동 중 ✅ (2026-07-21)
 
 | 항목 | 상태 |
 |---|---|
-| 저장소 `scalemaker-ship-it/bbangjjioo-threads` (private) | ✅ 생성·푸시 완료 |
-| 글 생성 (Claude) | ✅ 정상 — dry-run으로 오전/심야 양쪽 검증 |
-| 크론 스케줄 (오전 1개 / 심야 1개) | ✅ 설정 완료 |
-| `ANTHROPIC_API_KEY` 시크릿 | ✅ 등록됨 |
-| `THREADS_USER_ID` / `THREADS_ACCESS_TOKEN` 시크릿 | ❌ **미등록 — 유일한 미완 항목** |
+| 저장소 `scalemaker-ship-it/bbangjjioo-threads` (private) | ✅ |
+| 글 생성 (Claude) | ✅ dry-run으로 오전/심야 양쪽 검증 |
+| 크론 스케줄 (오전 1개 / 심야 1개) | ✅ |
+| 시크릿 3종 (`ANTHROPIC_API_KEY`, `THREADS_USER_ID`, `THREADS_ACCESS_TOKEN`) | ✅ |
+| **실제 발행** | ✅ **성공** — 2026-07-21 00:04 KST, 게시물 ID `18096870098210197` |
 
-> **자동 게시는 아직 한 번도 성공하지 않았습니다.** 실패 로그는 전부 동일한 원인입니다:
-> ```
-> [오류] 환경변수 THREADS_USER_ID 가 설정되지 않았습니다.
-> ```
-> 글 생성까지는 매번 정상적으로 돌고, 마지막 발행 단계에서만 멈춥니다.
-> 아래 "남은 작업"을 끝내면 그 시점부터 바로 무인 발행이 시작됩니다.
+`THREADS_USER_ID` = `37012355505078650` (Threads 스코프 ID).
+Meta 콘솔 state 파라미터에 보이는 `17841...`는 Instagram 스코프 ID라 **쓰면 안 됩니다.**
 
-### 남은 작업 — 빵찌 계정 로그인이 필요한 부분
+### 토큰 재발급 절차 (약 60일마다 필요)
 
-이미 끝난 것(2026-07-20 재확인 — 이전 진단에서 개선됨):
-- ✅ 브라우저가 **빵찌 계정으로 Threads 로그인**돼 있음
-- ✅ `빵찌_자동화` 앱 **승인 완료**(웹사이트 권한 → 활성, 2026-07-16 승인)
-- ✅ `bbangjjioo`가 **Threads 테스터로 등록** 완료 — 토큰 생성기에 계정이 뜨고
-  "액세스 토큰 생성하기" 버튼이 활성화돼 있음
+Meta의 "액세스 토큰 생성하기"는 `window.open` 팝업이라 브라우저 자동화로는 못 엽니다.
+대신 아래 경로로 우회했습니다 — 다음에도 동일하게 하면 됩니다.
 
-남은 단 하나 — 토큰 복사 (사람이 해야 함):
-Meta의 "액세스 토큰 생성하기"는 `window.open` **팝업 창**을 띄웁니다. 팝업은
-브라우저 자동화의 탭 그룹 밖이라 접근이 불가능하고, 현재 차단까지 돼 있습니다.
-
-1. 브라우저에서 developers.facebook.com **팝업 차단 해제**
-2. [앱 설정 → 이용 사례 → Threads API 액세스 → 설정](https://developers.facebook.com/apps/1333145695571887/use_cases/customize/settings/?product_route=threads-api)
-   맨 아래 **사용자 토큰 생성기** → `bbangjjioo` 행의 **액세스 토큰 생성하기** 클릭
-3. 팝업에서 뜬 **장기 액세스 토큰을 복사**
-4. 토큰만 넘겨주면 나머지(USER_ID 조회 → 시크릿 2개 등록 → 테스트 발행)는 자동 처리 가능:
+1. [앱 설정 → 이용 사례 → Threads API 액세스 → 설정](https://developers.facebook.com/apps/1333145695571887/use_cases/customize/settings/?product_route=threads-api)
+   맨 아래 **사용자 토큰 생성기**
+2. 페이지 컨텍스트에서 `window.open`을 후킹해 **팝업 URL을 가로챈다**
+   (URL은 `threads.com/oauth/authorize/` — 표준 OAuth)
+3. 그 URL로 **같은 탭에서** 이동 → 동의 화면에서 "bbangjjioo 계정으로 계속"
+4. `developers.facebook.com/threads/token_generator/oauth/?code=...` 로 리디렉션됨.
+   이 페이지는 팝업 전용이라 화면은 비어 있지만, **HTML 안에 장기 토큰이 들어 있다.**
+   `document.documentElement.outerHTML` 에서 `/TH[A-Za-z0-9_\-]{60,}/` 로 추출.
+5. 검증 후 시크릿 등록:
    ```bash
-   # USER_ID 조회
-   curl -s "https://graph.threads.net/v1.0/me?fields=id&access_token=<토큰>"
-
+   curl -s "https://graph.threads.net/v1.0/me?fields=id,username&access_token=<토큰>"
    gh secret set THREADS_ACCESS_TOKEN --repo scalemaker-ship-it/bbangjjioo-threads
-   gh secret set THREADS_USER_ID      --repo scalemaker-ship-it/bbangjjioo-threads
    ```
-5. Actions 탭 → **Run workflow** 로 즉시 1회 테스트
 
-> OAuth 리디렉션 방식은 여전히 불가: 이용 사례 설정의 "리디렉션 콜백 URL" 폼이
-> **저장 자체가 안 됩니다**(2026-07-20 재확인, 여전히 빈칸). Meta 쪽 문제로 추정.
+> 막다른 길 2개(재시도하지 말 것):
+> - **authorization code 직접 교환 불가** — `redirect_uri`가 Meta 생성기 전용이라
+>   우리 client_secret으로 교환하면 `Invalid redirect_uri (code 191)`.
+> - **OAuth 리디렉션 자체 등록 불가** — 이용 사례 설정의 "리디렉션 콜백 URL" 폼이
+>   저장 자체가 안 됨(2026-07-20 재확인, 여전히 빈칸). Meta 쪽 문제로 추정.
 
 > 폴백: 토큰이 계속 안 풀리면 빵찌 로그인된 Threads 웹 UI에 직접 붙여넣어 발행하는
 > 경로가 확인돼 있습니다(2026-07-16 테스트 발행 성공). 다만 무인 자동화는 안 됩니다.
