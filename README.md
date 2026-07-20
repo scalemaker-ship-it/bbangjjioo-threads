@@ -77,22 +77,32 @@
 
 ### 남은 작업 — 빵찌 계정 로그인이 필요한 부분
 
-토큰 발급이 막힌 이유(2026-07-16 진단):
-- 빵찌 Threads 테스터 초대가 **대기 중** — 브라우저가 다른 계정으로 로그인돼 있어 수락 불가
-- Meta 토큰 생성기가 별도 팝업 창이라 자동화로 접근 불가 + 팝업 차단됨
-- OAuth 리디렉션 콜백 URL 폼이 **저장 자체가 안 됨**(Meta 쪽 버그로 추정) → OAuth 경로도 막힘
+이미 끝난 것(2026-07-20 재확인 — 이전 진단에서 개선됨):
+- ✅ 브라우저가 **빵찌 계정으로 Threads 로그인**돼 있음
+- ✅ `빵찌_자동화` 앱 **승인 완료**(웹사이트 권한 → 활성, 2026-07-16 승인)
+- ✅ `bbangjjioo`가 **Threads 테스터로 등록** 완료 — 토큰 생성기에 계정이 뜨고
+  "액세스 토큰 생성하기" 버튼이 활성화돼 있음
 
-사람이 해야 하는 절차:
-1. 브라우저에서 **빵찌 계정으로 Threads 로그인**
-2. `threads.com/settings/website_permissions` → 초대 탭 → `빵찌_자동화` 앱 수락
-3. 브라우저 팝업 차단 해제
-4. Meta 토큰 생성기에서 장기 토큰 발급 → `me?fields=id`로 USER_ID 조회
-5. 시크릿 2개 등록:
+남은 단 하나 — 토큰 복사 (사람이 해야 함):
+Meta의 "액세스 토큰 생성하기"는 `window.open` **팝업 창**을 띄웁니다. 팝업은
+브라우저 자동화의 탭 그룹 밖이라 접근이 불가능하고, 현재 차단까지 돼 있습니다.
+
+1. 브라우저에서 developers.facebook.com **팝업 차단 해제**
+2. [앱 설정 → 이용 사례 → Threads API 액세스 → 설정](https://developers.facebook.com/apps/1333145695571887/use_cases/customize/settings/?product_route=threads-api)
+   맨 아래 **사용자 토큰 생성기** → `bbangjjioo` 행의 **액세스 토큰 생성하기** 클릭
+3. 팝업에서 뜬 **장기 액세스 토큰을 복사**
+4. 토큰만 넘겨주면 나머지(USER_ID 조회 → 시크릿 2개 등록 → 테스트 발행)는 자동 처리 가능:
    ```bash
+   # USER_ID 조회
+   curl -s "https://graph.threads.net/v1.0/me?fields=id&access_token=<토큰>"
+
    gh secret set THREADS_ACCESS_TOKEN --repo scalemaker-ship-it/bbangjjioo-threads
    gh secret set THREADS_USER_ID      --repo scalemaker-ship-it/bbangjjioo-threads
    ```
-6. Actions 탭 → **Run workflow** 로 즉시 1회 테스트
+5. Actions 탭 → **Run workflow** 로 즉시 1회 테스트
+
+> OAuth 리디렉션 방식은 여전히 불가: 이용 사례 설정의 "리디렉션 콜백 URL" 폼이
+> **저장 자체가 안 됩니다**(2026-07-20 재확인, 여전히 빈칸). Meta 쪽 문제로 추정.
 
 > 폴백: 토큰이 계속 안 풀리면 빵찌 로그인된 Threads 웹 UI에 직접 붙여넣어 발행하는
 > 경로가 확인돼 있습니다(2026-07-16 테스트 발행 성공). 다만 무인 자동화는 안 됩니다.
