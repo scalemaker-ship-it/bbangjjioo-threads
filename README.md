@@ -21,23 +21,30 @@
 | 파일 | 역할 |
 |---|---|
 | `threads_post.py` | 시간대·요일로 주제 선택 → 서브소재/형식 랜덤 → Claude 글 생성 → Threads 게시 |
-| `.github/workflows/threads-daily.yml` | **하루 2회** 크론 (아침·저녁), 랜덤 지연 포함 |
-| `빵찌_스레드_글쓰기_가이드.md` | 글쓰기 기준(구조·톤·금지어·체크리스트) |
+| `.github/workflows/threads-daily.yml` | **하루 2회** 크론 (오전·심야), 랜덤 지연 포함 |
+| `docs/글쓰기_가이드.md` | 글쓰기 기준(구조·톤·금지어·체크리스트) |
+| `docs/시드_기존글.md` | 톤 참고용 기존 글 모음 |
 | `requirements.txt` | 파이썬 패키지 (anthropic, requests) |
 
 ### 발행 스케줄 — 하루 2회 (일요일은 쉼)
 
-| 슬롯 | 시각 | 성격 |
-|---|---|---|
-| **아침** | 07:10 + 랜덤 0~80분 → **07:10~08:30** | 하루를 시작하며 실천하는 주제 |
-| **저녁** | 22:10 + 랜덤 0~80분 → **22:10~23:30** | 하루를 마무리하며 돌아보는 주제 |
+| 슬롯 | 크론(UTC) | 게시 시각(KST) | 성격 |
+|---|---|---|---|
+| **오전** | `0 22 * * 0-5` | 07:00 + 랜덤 0~120분 → **07:00~09:00** | 하루를 시작하며 실천하는 주제 |
+| **심야** | `0 13 * * 1-6` | 22:00 + 랜덤 0~90분 → **22:00~23:30** | 하루를 마무리하며 돌아보는 주제 |
 
 랜덤 지연으로 매일 게시 시각이 조금씩 달라져 사람처럼 보입니다.
-시간대(아침/저녁)는 스크립트가 KST 시각으로 자동 판별합니다.
+
+> 심야 슬롯의 지연 상한이 90분인 이유: GitHub 크론은 혼잡할 때 수십 분 늦게 뜹니다.
+> 자정을 넘기면 날짜가 바뀌어 **다음 날 주제로** 발행돼버리므로, 23:30에서 끊고
+> 30분의 여유를 남겨둡니다.
+
+슬롯은 워크플로우가 **크론 식을 보고 명시로 `--slot`을 넘깁니다.** 스크립트의 시각
+자동 판별에 맡기면 크론이 늦게 떠 자정을 넘겼을 때 슬롯이 `morning`으로 뒤집힙니다.
 
 ### 요일 × 시간대 편성 (각 주제 주 2회)
 
-| 요일 | 아침 | 저녁 |
+| 요일 | 오전 | 심야 |
 |---|---|---|
 | 월 | 운동·헬스 | 얼굴 피부 |
 | 화 | 재테크·경기도 부동산 | 바디·두피 |
@@ -46,34 +53,54 @@
 | 금 | 재테크·경기도 부동산 | 얼굴 피부 |
 | 토 | 스트레스·수면 | 소소한 자기관리 일상 |
 
-같은 날 아침/저녁은 **주제도 소재도 서로 다르게** 생성됩니다(날짜+슬롯 시드).
+같은 날 오전/심야는 **주제도 소재도 서로 다르게** 생성됩니다(날짜+슬롯 시드).
 
 각 요일마다 6개의 서브소재 풀이 있고, **날짜를 시드로** 하나를 골라 매일 다른 이야기를 씁니다.
 같은 날 재실행해도 같은 소재가 나와 안전합니다(중복 게시 방지).
 
-## 최초 설정 (1회만)
+## 현재 상태 (2026-07-20)
 
-### 1. GitHub 저장소 만들기
-1. github.com 로그인 → **New repository** → 이름 자유(예: `bbangjjioo-threads`), **Private** 권장 → Create.
-2. 이 `빵찌결혼준비자동화` 폴더의 파일들을 그 저장소에 올립니다(드래그 업로드 또는 git push).
-
-> ⚠️ 오산 저장소(`osan-threads`)와 **다른 새 저장소**를 만드세요. 섞이면 안 됩니다.
-
-### 2. Secrets 등록
-저장소 → **Settings → Secrets and variables → Actions → New repository secret** 에서 3개 등록:
-
-| 이름 | 값 |
+| 항목 | 상태 |
 |---|---|
-| `ANTHROPIC_API_KEY` | Anthropic 콘솔 API 키 (`console.anthropic.com`) |
-| `THREADS_USER_ID` | **빵찌 계정**의 Threads 사용자 ID |
-| `THREADS_ACCESS_TOKEN` | **빵찌 계정**의 Threads 액세스 토큰 |
+| 저장소 `scalemaker-ship-it/bbangjjioo-threads` (private) | ✅ 생성·푸시 완료 |
+| 글 생성 (Claude) | ✅ 정상 — dry-run으로 오전/심야 양쪽 검증 |
+| 크론 스케줄 (오전 1개 / 심야 1개) | ✅ 설정 완료 |
+| `ANTHROPIC_API_KEY` 시크릿 | ✅ 등록됨 |
+| `THREADS_USER_ID` / `THREADS_ACCESS_TOKEN` 시크릿 | ❌ **미등록 — 유일한 미완 항목** |
 
-> Threads User ID / Access Token 은 **빵찌 계정** 것을 넣어야 합니다.
-> 오산 계정 토큰을 넣으면 오산 계정에 글이 올라가니 주의하세요.
+> **자동 게시는 아직 한 번도 성공하지 않았습니다.** 실패 로그는 전부 동일한 원인입니다:
+> ```
+> [오류] 환경변수 THREADS_USER_ID 가 설정되지 않았습니다.
+> ```
+> 글 생성까지는 매번 정상적으로 돌고, 마지막 발행 단계에서만 멈춥니다.
+> 아래 "남은 작업"을 끝내면 그 시점부터 바로 무인 발행이 시작됩니다.
 
-### 3. 동작 테스트
-저장소 → **Actions** 탭 → "빵찌 자기관리·재테크·피부 스레드 자동 게시" → **Run workflow** 로 즉시 1회 실행.
-로그에 "게시 완료"가 뜨고 빵찌 스레드에 글이 올라오면 성공입니다.
+### 남은 작업 — 빵찌 계정 로그인이 필요한 부분
+
+토큰 발급이 막힌 이유(2026-07-16 진단):
+- 빵찌 Threads 테스터 초대가 **대기 중** — 브라우저가 다른 계정으로 로그인돼 있어 수락 불가
+- Meta 토큰 생성기가 별도 팝업 창이라 자동화로 접근 불가 + 팝업 차단됨
+- OAuth 리디렉션 콜백 URL 폼이 **저장 자체가 안 됨**(Meta 쪽 버그로 추정) → OAuth 경로도 막힘
+
+사람이 해야 하는 절차:
+1. 브라우저에서 **빵찌 계정으로 Threads 로그인**
+2. `threads.com/settings/website_permissions` → 초대 탭 → `빵찌_자동화` 앱 수락
+3. 브라우저 팝업 차단 해제
+4. Meta 토큰 생성기에서 장기 토큰 발급 → `me?fields=id`로 USER_ID 조회
+5. 시크릿 2개 등록:
+   ```bash
+   gh secret set THREADS_ACCESS_TOKEN --repo scalemaker-ship-it/bbangjjioo-threads
+   gh secret set THREADS_USER_ID      --repo scalemaker-ship-it/bbangjjioo-threads
+   ```
+6. Actions 탭 → **Run workflow** 로 즉시 1회 테스트
+
+> 폴백: 토큰이 계속 안 풀리면 빵찌 로그인된 Threads 웹 UI에 직접 붙여넣어 발행하는
+> 경로가 확인돼 있습니다(2026-07-16 테스트 발행 성공). 다만 무인 자동화는 안 됩니다.
+
+> Threads User ID / Access Token 은 반드시 **빵찌 계정** 것을 넣으세요.
+> 오산 계정 토큰을 넣으면 오산 계정에 글이 올라갑니다.
+
+> ⚠️ Threads 토큰은 약 60일 후 만료됩니다. 만료되면 위 4~5단계를 다시 수행하세요.
 
 ## 로컬에서 미리보기 (게시 없이 글만 확인)
 
@@ -81,8 +108,8 @@
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY=...      # Threads 토큰 없이 API 키만 있으면 됨
 python threads_post.py --dry-run                    # 지금 시각의 슬롯으로 생성
-python threads_post.py --dry-run --slot morning     # 아침 글 강제 생성
-python threads_post.py --dry-run --slot evening     # 저녁 글 강제 생성
+python threads_post.py --dry-run --slot morning     # 오전 글 강제 생성
+python threads_post.py --dry-run --slot evening     # 심야 글 강제 생성
 ```
 
 ## 로컬에서 실제 게시

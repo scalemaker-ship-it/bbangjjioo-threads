@@ -221,8 +221,8 @@ TOPICS = {
 
 # ─────────────────────────────────────────────────────────────
 # 하루 2회 발행 — 시간대별 주제 배정
-#   아침(07~10시): 하루를 시작하며 실천하는 주제 (운동 / 재테크 / 스트레스·수면)
-#   저녁(22시 이후): 하루를 마무리하며 돌아보는 주제 (피부 / 바디 / 소소한 일상)
+#   오전(07~09시): 하루를 시작하며 실천하는 주제 (운동 / 재테크 / 스트레스·수면)
+#   심야(22~23:30): 하루를 마무리하며 돌아보는 주제 (피부 / 바디 / 소소한 일상)
 # 각 주제가 주 2회씩 고르게 돌도록 배치. 월~토, 일요일은 쉼.
 # ─────────────────────────────────────────────────────────────
 SCHEDULE = {
@@ -240,7 +240,11 @@ TIP_PROBABILITY = {1: 0.6, 2: 0.35, 3: 0.7, 4: 0.4, 5: 0.7, 6: 0.5}
 
 
 def current_slot(now: datetime) -> str:
-    """KST 기준 오전이면 morning, 오후/밤이면 evening."""
+    """KST 기준 오전이면 morning, 오후/밤이면 evening.
+
+    크론 실행에서는 워크플로우가 --slot 을 명시로 넘긴다(자정 넘김 시 슬롯이
+    뒤집히는 걸 막기 위해). 이 함수는 수동/로컬 실행의 기본값용.
+    """
     return "morning" if now.hour < 12 else "evening"
 
 FORMAT_WORRY = (
@@ -377,7 +381,7 @@ def main() -> None:
     topic = TOPICS[topic_id]
 
     sub, user_message = build_user_message(topic, now, topic_id, slot)
-    slot_label = "아침" if slot == "morning" else "저녁"
+    slot_label = "오전" if slot == "morning" else "심야"
     print(f"[{now:%Y-%m-%d %H:%M KST}] {slot_label} / 주제: {topic['name']} / 소재: {sub}")
 
     # 게시 모드에서만 API 키/토큰을 요구한다. (dry-run은 키만 있으면 됨)

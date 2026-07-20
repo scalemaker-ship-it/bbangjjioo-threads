@@ -1,15 +1,21 @@
 name: 빵찌 스레드 자동 게시 (하루 2회)
 
 # 하루 2회 발행. GitHub Actions 크론은 UTC 기준 (KST = UTC+9).
-#   아침: 07:10 KST = 22:10 UTC 전날  → "10 22 * * 0-5"  (KST 월~토)
-#   저녁: 22:10 KST = 13:10 UTC 당일  → "10 13 * * 1-6"  (KST 월~토)
-# 각 실행 시작 시 0~80분 랜덤 지연을 줘서 게시 시각을 사람처럼 분산시킨다.
-#   → 아침은 07:10~08:30 사이(요구: 7~10시), 저녁은 22:10~23:30 사이(요구: 22시 이후)에 게시.
-# 시간대(아침/저녁)는 스크립트가 KST 시각으로 자동 판별해 주제를 고른다.
+#   오전 슬롯: 07:00 KST = 22:00 UTC 전날  → "0 22 * * 0-5"  (KST 월~토)
+#   심야 슬롯: 22:00 KST = 13:00 UTC 당일  → "0 13 * * 1-6"  (KST 월~토)
+#
+# 각 실행은 시작 직후 랜덤 지연을 줘서 게시 시각을 사람처럼 분산시킨다.
+#   오전: 0~120분 → 07:00~09:00 KST 사이 게시
+#   심야: 0~90분  → 22:00~23:30 KST 사이 게시
+# 심야 지연 상한을 90분으로 둔 이유: GitHub 크론은 혼잡할 때 수십 분 늦게 뜨는데,
+# 자정을 넘기면 날짜가 바뀌어 다음 날 주제로 발행돼버린다. 23:30 + 여유 30분.
+#
+# 슬롯은 크론 식으로 명시 전달한다. 스크립트의 시각 자동 판별에 맡기면
+# 크론이 늦게 떠 자정을 넘겼을 때 슬롯이 morning 으로 뒤집힐 수 있다.
 on:
   schedule:
-    - cron: "10 22 * * 0-5"   # 아침 슬롯
-    - cron: "10 13 * * 1-6"   # 저녁 슬롯
+    - cron: "0 22 * * 0-5"    # 오전 슬롯 (KST 월~토 07:00)
+    - cron: "0 13 * * 1-6"    # 심야 슬롯 (KST 월~토 22:00)
   workflow_dispatch:          # 수동 실행 (테스트용)
     inputs:
       slot:
@@ -35,8 +41,15 @@ jobs:
       # 크론 실행일 때만 랜덤 지연 (수동 실행은 즉시)
       - name: 랜덤 지연 (게시 시각 분산)
         if: github.event_name == 'schedule'
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
         run: |
-          DELAY=$((RANDOM % 4800))   # 0~80분
+          if [ "$SCHEDULE" = "0 22 * * 0-5" ]; then
+            MAX=7200   # 오전: 0~120분
+          else
+            MAX=5400   # 심야: 0~90분
+          fi
+          DELAY=$((RANDOM % MAX))
           echo "약 $((DELAY / 60))분 대기 후 게시합니다."
           sleep $DELAY
 
@@ -45,7 +58,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
-          SLOT: ${{ inputs.slot }}
+          # 크론이면 크론 식으로 슬롯 결정, 수동이면 입력값(비었으면 스크립트 자동 판별)
+          SLOT: ${{ github.event_name == 'schedule' && (github.event.schedule == '0 22 * * 0-5' && 'morning' || 'evening') || inputs.slot }}
         run: |
           if [ -n "$SLOT" ]; then
             python threads_post.py --slot "$SLOT"
