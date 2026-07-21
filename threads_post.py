@@ -28,6 +28,7 @@
 import argparse
 import os
 import random
+import re
 import sys
 import time
 from datetime import datetime
@@ -65,7 +66,8 @@ SYSTEM_PROMPT = f"""당신은 스레드(Threads) 개인 계정 '빵찌'의 글�
 4. 전체 길이 공백 포함 150~350자. 짧고 담백하게.
 5. 매번 질문으로만 끝내지 말 것. 아래 [두 가지 글 형식] 중 그때그때 지정된 형식을 따른다.
    '꿀팁형'에서는 질문이 아니라 가벼운 추천·한 마디로 끝내되, 마무리 문구는 매번 다르게.
-6. 해시태그 금지. 이모지는 글 전체에 0~1개만.
+6. 해시태그 금지. **이모지·이모티콘은 절대 쓰지 마라 — 하나도 넣지 않는다.**
+   감정은 'ㅜㅜ', '..', '헐' 같은 텍스트로만 표현한다.
 
 [두 가지 글 형식 — 이 글은 유저 메시지에서 지정한 형식으로 쓴다]
 (A) 고민 나눔형:
@@ -113,7 +115,8 @@ SYSTEM_PROMPT = f"""당신은 스레드(Threads) 개인 계정 '빵찌'의 글�
   → 예전처럼 모든 줄 사이에 빈 줄을 넣으면 너무 넓어서 안 된다.
 - 한 줄은 짧게(한 호흡, 대략 10~22자). 긴 문장은 의미 단위로 끊는다.
 - 문장 끝은 마침표 대신 '..' 로 흘리듯 끝내도 좋다. (예: "너무 오돌토돌해..")
-- 꿀팁형에서 단계를 나열할 땐 이모지 불릿(💧🥚 등)으로 리스트처럼 써도 좋다(이때도 본문은 바짝 붙임).
+- 꿀팁형에서 단계를 나열할 땐 그냥 줄바꿈으로만 나열한다(이때도 본문은 바짝 붙임).
+  불릿 기호나 이모지를 앞에 붙이지 마라.
 
 - 실제 터진 글 구조 예시(형식만 참고, 문장은 새로 쓸 것):
 
@@ -296,7 +299,7 @@ def build_user_message(topic: dict, today: datetime, topic_id: int, slot: str) -
         f"오늘 쓸 구체적 소재: {sub}\n\n"
         f"{fmt}\n\n"
         "위 소재와 형식으로, 오늘 실제로 겪은 일처럼 빵찌의 일상글 한 편을 써줘. "
-        "규칙(편한 반말, 담백하게, 구체적 장면 하나, 150~350자, 해시태그 없음, 이모지 0~1개)을 지키고, "
+        "규칙(편한 반말, 담백하게, 구체적 장면 하나, 150~350자, 해시태그 없음, 이모지 사용 금지)을 지키고, "
         "의학적 단정·제품 실명·투자 권유는 넣지 말고, 결혼준비·가족 이야기도 넣지 마.\n"
         "말투는 너무 반듯하게 쓰지 말고, 사람들이 자주 쓰는 구어체·가벼운 오타"
         "(해봥, 넘, 걍, 몰겠어, ~함/~됨 같은 명사형 종결 등)를 자연스럽게 섞어줘. "
@@ -306,6 +309,35 @@ def build_user_message(topic: dict, today: datetime, topic_id: int, slot: str) -
         "글 전체 빈 줄은 2개 정도만."
     )
     return sub, user_message
+
+
+# 이모지/기호 계열 유니코드 블록. 프롬프트로 금지해도 모델이 가끔 흘리므로
+# 발행 직전에 실제로 걷어낸다. (ㅜㅜ, .. 같은 텍스트 감정 표현은 건드리지 않음)
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001F300-\U0001FAFF"  # 그림문자·기호·픽토그램 전반
+    "\U00002600-\U000027BF"  # 기타 기호·딩뱃
+    "\U0001F1E6-\U0001F1FF"  # 국기
+    "\U00002190-\U000021FF"  # 화살표
+    "\U00002B00-\U00002BFF"  # 기타 화살표·도형
+    "\U0000FE00-\U0000FE0F"  # 변이 선택자
+    "\U0001F000-\U0001F0FF"  # 마작·카드
+    "\U0000203C\U00002049"  # ‼ ⁉ (이모지 표현 문자)
+    "\U000024C2\U00003030\U0000303D\U00003297\U00003299"
+    "\U000000A9\U000000AE\U00002122"  # © ® ™
+    "\U0000200D"  # ZWJ (이모지 결합)
+    "]+"
+)
+
+
+def strip_emoji(text: str) -> str:
+    """이모지를 제거하고, 그로 인해 생긴 군더더기 공백을 정리한다."""
+    cleaned = _EMOJI_RE.sub("", text)
+    # 이모지 불릿이 줄 앞에 있었다면 남은 선행 공백을 없앤다
+    lines = [line.rstrip() for line in cleaned.split("\n")]
+    lines = [line.lstrip() if line.strip() else "" for line in lines]
+    # 줄 중간에 생긴 이중 공백 정리
+    return "\n".join(re.sub(r"[ \t]{2,}", " ", line) for line in lines).strip()
 
 
 def generate_post(user_message: str) -> str:
@@ -322,7 +354,7 @@ def generate_post(user_message: str) -> str:
     text = next((b.text for b in response.content if b.type == "text"), "").strip()
     if not text:
         sys.exit("[오류] Claude 응답에서 본문 텍스트를 찾지 못했습니다.")
-    return text
+    return strip_emoji(text)
 
 
 def post_to_threads(user_id: str, access_token: str, text: str) -> str:
