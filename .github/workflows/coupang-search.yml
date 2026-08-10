@@ -1,0 +1,31 @@
+name: 쿠팡 상품 검색 (리스트업)
+
+# 수동 실행 전용. 키워드로 쿠팡 상품을 검색해 이름·가격·URL·이미지를 출력한다.
+# COUPANG_ACCESS_KEY / COUPANG_SECRET_KEY 시크릿을 사용(값은 로그에 안 찍힘).
+on:
+  workflow_dispatch:
+    inputs:
+      keywords:
+        description: "검색 키워드 ('|'로 여러 개, 예: 틈새 수납 카트|실리콘 밀폐 뚜껑)"
+        type: string
+        required: true
+      limit:
+        description: "키워드당 결과 수"
+        type: string
+        default: "5"
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: requests 설치
+        run: pip install requests
+      - name: 쿠팡 상품 검색
+        env:
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+        run: python coupang.py search "${{ inputs.keywords }}" "${{ inputs.limit }}"
