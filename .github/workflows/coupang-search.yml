@@ -17,6 +17,10 @@ on:
         description: "이 상품 URL을 짧은 /a/ 어필리에이트 링크로 변환(있으면 검색 대신 실행)"
         type: string
         required: false
+      threads_id:
+        description: "이 스레드 게시물 ID의 permalink 조회(있으면 그것만 실행)"
+        type: string
+        required: false
 
 jobs:
   search:
@@ -32,8 +36,11 @@ jobs:
         env:
           COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
           COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
         run: |
-          if [ -n "${{ inputs.deeplink_url }}" ]; then
+          if [ -n "${{ inputs.threads_id }}" ]; then
+            python -c "import os,requests;print(requests.get('https://graph.threads.net/v1.0/${{ inputs.threads_id }}',params={'fields':'permalink,text','access_token':os.environ['THREADS_ACCESS_TOKEN']}).text)"
+          elif [ -n "${{ inputs.deeplink_url }}" ]; then
             python coupang.py deeplink "${{ inputs.deeplink_url }}"
           else
             python coupang.py search "${{ inputs.keywords }}" "${{ inputs.limit }}"
