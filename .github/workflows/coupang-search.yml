@@ -8,11 +8,15 @@ on:
       keywords:
         description: "검색 키워드 ('|'로 여러 개, 예: 틈새 수납 카트|실리콘 밀폐 뚜껑)"
         type: string
-        required: true
+        required: false
       limit:
         description: "키워드당 결과 수"
         type: string
         default: "5"
+      deeplink_url:
+        description: "이 상품 URL을 짧은 /a/ 어필리에이트 링크로 변환(있으면 검색 대신 실행)"
+        type: string
+        required: false
 
 jobs:
   search:
@@ -28,4 +32,9 @@ jobs:
         env:
           COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
           COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
-        run: python coupang.py search "${{ inputs.keywords }}" "${{ inputs.limit }}"
+        run: |
+          if [ -n "${{ inputs.deeplink_url }}" ]; then
+            python coupang.py deeplink "${{ inputs.deeplink_url }}"
+          else
+            python coupang.py search "${{ inputs.keywords }}" "${{ inputs.limit }}"
+          fi
