@@ -8,6 +8,8 @@ on:
         description: "상품 목록 파일 (기본 꿀템100.md)"
         type: string
         default: "꿀템100.md"
+  schedule:
+    - cron: "20 */2 * * *"   # 2시간마다 자동 재시도(쿠팡 레이트리밋 풀리면 미예약분 채움)
 
 permissions:
   contents: write
@@ -33,4 +35,4 @@ jobs:
           git config user.name "coupas-bot"
           git config user.email "coupas-bot@users.noreply.github.com"
           git add queue.json
-          git diff --quiet --cached || (git commit -m "큐 대량 예약(build_queue)" && git push)
+          git diff --quiet --cached || (git commit -m "큐 대량 예약(build_queue)" && (git push || (git pull --rebase && git push)))
