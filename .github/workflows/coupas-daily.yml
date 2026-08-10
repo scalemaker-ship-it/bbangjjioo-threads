@@ -1,0 +1,36 @@
+name: 쿠파스 하루 3회 자동 게시
+
+# 큐(queue.json)에서 맨 앞 1건씩 하루 3번 자동 게시.
+# 07:00 / 20:00 / 23:00 KST = 22:00 / 11:00 / 14:00 UTC.
+# (GitHub 무료 크론은 혼잡 시 수십 분 늦을 수 있음)
+on:
+  schedule:
+    - cron: "0 22 * * *"   # 07:00 KST
+    - cron: "0 11 * * *"   # 20:00 KST
+    - cron: "0 14 * * *"   # 23:00 KST
+  workflow_dispatch:        # 수동 실행(테스트)
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: requests 설치
+        run: pip install requests
+      - name: 큐에서 1건 게시
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: python publish_from_queue.py
+      - name: 큐 소비 커밋
+        run: |
+          git config user.name "coupas-bot"
+          git config user.email "coupas-bot@users.noreply.github.com"
+          git add queue.json
+          git diff --quiet --cached || (git commit -m "큐 소비(1건 게시)" && git push)
