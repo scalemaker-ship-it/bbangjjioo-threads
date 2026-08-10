@@ -66,16 +66,33 @@ def publish(uid, tok, cid):
 def main():
     uid = require("THREADS_USER_ID")
     tok = require("THREADS_ACCESS_TOKEN")
-    image_url = readfile("coupas_image.txt")
+    image_urls = [ln.strip() for ln in readfile("coupas_image.txt").splitlines() if ln.strip()]
     main_text = readfile("coupas_main.txt")
     reply_text = readfile("coupas_reply.txt")
+    if not image_urls:
+        sys.exit("[오류] coupas_image.txt 에 이미지 URL 없음")
 
-    print("=== 본문(1/2) 이미지 컨테이너 생성 ===")
-    cid = create(uid, tok, {"media_type": "IMAGE", "image_url": image_url, "text": main_text})
-    print("컨테이너:", cid)
-    if not wait_ready(cid, tok):
-        sys.exit("[중단] 이미지 처리 실패 — 게시 안 함")
-    main_id = publish(uid, tok, cid)
+    if len(image_urls) == 1:
+        print("=== 본문(단일 이미지) ===")
+        cid = create(uid, tok, {"media_type": "IMAGE", "image_url": image_urls[0], "text": main_text})
+        print("컨테이너:", cid)
+        if not wait_ready(cid, tok):
+            sys.exit("[중단] 이미지 처리 실패 — 게시 안 함")
+        main_id = publish(uid, tok, cid)
+    else:
+        print(f"=== 본문(캐러셀 {len(image_urls)}장) ===")
+        children = []
+        for i, u in enumerate(image_urls, 1):
+            ch = create(uid, tok, {"media_type": "IMAGE", "image_url": u, "is_carousel_item": True})
+            print(f"  이미지{i} 컨테이너: {ch}")
+            if not wait_ready(ch, tok):
+                sys.exit(f"[중단] 이미지{i} 처리 실패 — 게시 안 함")
+            children.append(ch)
+        car = create(uid, tok, {"media_type": "CAROUSEL", "children": ",".join(children), "text": main_text})
+        print("캐러셀 컨테이너:", car)
+        if not wait_ready(car, tok):
+            sys.exit("[중단] 캐러셀 처리 실패 — 게시 안 함")
+        main_id = publish(uid, tok, car)
     print("본문 게시 완료:", main_id)
 
     if reply_text:
