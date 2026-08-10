@@ -1,0 +1,22 @@
+name: 쿠파스 광고글 게시 (수동)
+
+# 수동 실행 전용. coupas_image.txt / coupas_main.txt / coupas_reply.txt 로
+# 이미지 본문(1/2) + 텍스트 답글(2/2)을 @bbangjjioo에 게시한다.
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: requests 설치
+        run: pip install requests
+      - name: 게시
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: python publish_coupas.py
