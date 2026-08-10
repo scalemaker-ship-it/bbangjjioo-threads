@@ -3,6 +3,11 @@ name: 쿠파스 큐 대량 예약 (build)
 # 수동 실행. 꿀템100.md 상품들을 쿠팡 검색→링크→글로 만들어 queue.json 에 예약.
 on:
   workflow_dispatch:
+    inputs:
+      md_file:
+        description: "상품 목록 파일 (기본 꿀템100.md)"
+        type: string
+        default: "꿀템100.md"
 
 permissions:
   contents: write
@@ -21,6 +26,7 @@ jobs:
         env:
           COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
           COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+          QUEUE_MD: ${{ inputs.md_file }}
         run: python build_queue.py
       - name: queue.json 커밋
         run: |
