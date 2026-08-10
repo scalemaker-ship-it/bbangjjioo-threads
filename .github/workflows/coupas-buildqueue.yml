@@ -1,0 +1,30 @@
+name: 쿠파스 큐 대량 예약 (build)
+
+# 수동 실행. 꿀템100.md 상품들을 쿠팡 검색→링크→글로 만들어 queue.json 에 예약.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: requests 설치
+        run: pip install requests
+      - name: 큐 예약 생성
+        env:
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+        run: python build_queue.py
+      - name: queue.json 커밋
+        run: |
+          git config user.name "coupas-bot"
+          git config user.email "coupas-bot@users.noreply.github.com"
+          git add queue.json
+          git diff --quiet --cached || (git commit -m "큐 대량 예약(build_queue)" && git push)
