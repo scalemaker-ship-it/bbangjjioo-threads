@@ -1,0 +1,26 @@
+name: 쿠파스 실상품 이미지·딥링크 수집
+# fetch_products.py로 큐 상품들의 진짜 productImage + 딥링크를 products.json에 모아 커밋.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: 수집
+        env:
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+        run: python fetch_products.py
+      - name: 커밋
+        run: |
+          git config user.name "coupas-bot"
+          git config user.email "coupas-bot@users.noreply.github.com"
+          git add products.json
+          git diff --quiet --cached || (git commit -m "실상품 이미지·딥링크 수집" && git push)
