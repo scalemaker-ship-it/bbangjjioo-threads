@@ -98,7 +98,13 @@ def main():
             f"[광고] '{f['kw']}' 궁금하면ㅠㅠ\n\n"
             f"🔽'{f['kw']}' 정보는 아래에🔽\n{link}\n{link}\n\n{DISCLOSURE}"
         )
-        added.append({"main": main_text, "reply": reply, "images": [f["img"]]})
+        # 규격(prd §2): 본문 = 사용컷 2장. Actions 러너엔 힉스필드 MCP가 없어 여기선
+        # 대표 썸네일 1장만 임시로 넣고 needs_ai_images 플래그를 세운다.
+        # 세션에서 set_images.py 로 AI 사용컷 2장 공개 URL을 주입하면 플래그가 해제된다.
+        added.append({
+            "main": main_text, "reply": reply,
+            "images": [f["img"]], "needs_ai_images": True,
+        })
 
     data["items"] = existing + added
     json.dump(data, open(QUEUE, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
