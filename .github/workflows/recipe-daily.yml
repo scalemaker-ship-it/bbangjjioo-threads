@@ -1,0 +1,44 @@
+name: 레시피 하루 1회 자동 게시
+
+# 레시피 트랙 전용. 기존 쿠파스(coupas-daily.yml)·요일주제(threads-daily.yml)와 독립.
+# 큐: recipe/recipe_queue.json — 맨 앞 1건씩 소비.
+# 12:00 KST = 03:00 UTC + 0~60분 랜덤 지연 → 12:00~13:00 사이 게시(점심 = 레시피 저장률 피크).
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:        # 수동 실행(테스트)
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: requests 설치
+        run: pip install requests
+
+      # 크론 실행일 때만 랜덤 지연 (수동 실행은 즉시)
+      - name: 랜덤 지연 (게시 시각 분산)
+        if: github.event_name == 'schedule'
+        run: |
+          DELAY=$((RANDOM % 3600))
+          echo "약 $((DELAY / 60))분 대기 후 게시합니다."
+          sleep $DELAY
+
+      - name: 레시피 큐에서 1건 게시
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: python recipe/publish_recipe.py
+
+      - name: 큐 소비 커밋
+        run: |
+          git config user.name "recipe-bot"
+          git config user.email "recipe-bot@users.noreply.github.com"
+          git add recipe/recipe_queue.json
+          git diff --quiet --cached || (git commit -m "레시피 큐 소비(1건 게시)" && (git push || (git pull --rebase && git push)))
