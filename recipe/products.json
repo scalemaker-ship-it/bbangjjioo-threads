@@ -1,1 +1,352 @@
-{}
+{
+  "egg": {
+    "name": "신선한 대란",
+    "price": 7990,
+    "url": "https://www.coupang.com/vp/products/7230779632?itemId=18347032018&vendorItemId=85491095723",
+    "link": "https://link.coupang.com/a/gu3izaDd3Q",
+    "rocket": true
+  },
+  "oat": {
+    "name": "대구농산 냉장고 쏙 롤드 오트, 1.2kg, 1개",
+    "price": 6980,
+    "url": "https://www.coupang.com/vp/products/6386799209?itemId=13595060983&vendorItemId=80848192583",
+    "link": "https://link.coupang.com/a/gu3izg1rpc",
+    "rocket": true
+  },
+  "yogurt": {
+    "name": "[로켓프레시] 매일바이오 그릭요거트 무가당 플레인",
+    "price": 7280,
+    "url": "https://www.coupang.com/vp/products/7216495213?itemId=19224585078&vendorItemId=92973643792",
+    "link": "https://link.coupang.com/a/gu3izkr1hc",
+    "rocket": true
+  },
+  "oyster": {
+    "name": "이금기 팬더 굴소스",
+    "price": 3930,
+    "url": "https://www.coupang.com/vp/products/8202544905?itemId=20106538968&vendorItemId=3000043960",
+    "link": "https://link.coupang.com/a/gu3izxFWQ8",
+    "rocket": true
+  },
+  "bread": {
+    "name": "[로켓프레시] 신라명과 쫄깃한 생우유 식빵",
+    "price": 3600,
+    "url": "https://www.coupang.com/vp/products/8312748844?itemId=23987770488&vendorItemId=91008804768",
+    "link": "https://link.coupang.com/a/gu3izATmvI",
+    "rocket": true
+  },
+  "container": {
+    "name": "코멧 홈 국내생산 눈금이 있고 겹쳐서 보관하는 편리한 BPA FREE 밀폐용기",
+    "price": 5210,
+    "url": "https://www.coupang.com/vp/products/8277572940?itemId=23861737632&vendorItemId=90884936262",
+    "link": "https://link.coupang.com/a/gu3izF1w96",
+    "rocket": true
+  },
+  "cucumber": {
+    "name": "국내산 백오이",
+    "price": 4300,
+    "url": "https://www.coupang.com/vp/products/2233944921?itemId=5617626770&vendorItemId=72916817045",
+    "link": "https://link.coupang.com/a/gu3izKXSH6",
+    "rocket": true
+  },
+  "tuna": {
+    "name": "사조참치 살코기 안심따개",
+    "price": 16450,
+    "url": "https://www.coupang.com/vp/products/6858666780?itemId=903927976&vendorItemId=84994382810",
+    "link": "https://link.coupang.com/a/gu3izUnRgi",
+    "rocket": true
+  },
+  "spam": {
+    "name": "스팸 동그란스팸, 5개, 160g",
+    "price": 13370,
+    "url": "https://www.coupang.com/vp/products/8186535113?itemId=23491394624&vendorItemId=92369421407",
+    "link": "https://link.coupang.com/a/gu3iz0rgdw",
+    "rocket": false
+  },
+  "rice": {
+    "name": "햇반 백미밥, 210g, 12개",
+    "price": 13980,
+    "url": "https://www.coupang.com/vp/products/9509930958?itemId=3475105914&vendorItemId=92656122518",
+    "link": "https://link.coupang.com/a/gu3iz9xOGO",
+    "rocket": true
+  },
+  "dumpling": {
+    "name": "[로켓프레시] 비셰프 고기손만두 (냉동), 1.3kg, 1개",
+    "price": 8160,
+    "url": "https://www.coupang.com/vp/products/9519357061?itemId=28376067657&vendorItemId=95328318149",
+    "link": "https://link.coupang.com/a/gu3iKJOppY",
+    "rocket": true
+  },
+  "tofu": {
+    "name": "청정원 1등급 국산콩 두부 부침찌개 겸용",
+    "price": 3900,
+    "url": "https://www.coupang.com/vp/products/188775851?itemId=539099250&vendorItemId=4409002942",
+    "link": "https://link.coupang.com/a/gu3iKOKKXY",
+    "rocket": true
+  },
+  "chicken": {
+    "name": "하림 닭가슴살 블랙페퍼 100g",
+    "price": 21350,
+    "url": "https://www.coupang.com/vp/products/7260940221?itemId=16938973800&vendorItemId=94301964979",
+    "link": "https://link.coupang.com/a/gu3iKUtWPk",
+    "rocket": false
+  },
+  "gim": {
+    "name": "광천김 이모카세 1호 김자반, 50g, 3개",
+    "price": 7470,
+    "url": "https://www.coupang.com/vp/products/8989222965?itemId=26378369943&vendorItemId=93354910168",
+    "link": "https://link.coupang.com/a/gu3iLxcB3c",
+    "rocket": true
+  },
+  "ramen": {
+    "name": "농심 신라면 120g x 5p + 안성탕면 125g x 5p + 얼큰 너구리 120g x 5p + 짜파게티 140g x 5p",
+    "price": 17680,
+    "url": "https://www.coupang.com/vp/products/5734427904?itemId=19969657941&vendorItemId=70916247951",
+    "link": "https://link.coupang.com/a/gu3iLBRms8",
+    "rocket": true
+  },
+  "kimchi": {
+    "name": "어사김치 전라도 김장배추 포기김치 (국산)",
+    "price": 15800,
+    "url": "https://www.coupang.com/vp/products/7095926785?itemId=25239692024&vendorItemId=92235771858",
+    "link": "https://link.coupang.com/a/gu3iLGr9Oe",
+    "rocket": false
+  },
+  "gochujang": {
+    "name": "청정원순창 태양초 고추장",
+    "price": 8830,
+    "url": "https://www.coupang.com/vp/products/7155858521?itemId=24241431&vendorItemId=3035694950",
+    "link": "https://link.coupang.com/a/gu3iLOv8Y8",
+    "rocket": true
+  },
+  "soysauce": {
+    "name": "청정원 두번달여 더 진한 진간장",
+    "price": 4180,
+    "url": "https://www.coupang.com/vp/products/6988712167?itemId=5481568902&vendorItemId=84646524990",
+    "link": "https://link.coupang.com/a/gu3iLYT5gq",
+    "rocket": true
+  },
+  "sesameoil": {
+    "name": "오뚜기옛날 참기름",
+    "price": 6950,
+    "url": "https://www.coupang.com/vp/products/9519439579?itemId=19636227&vendorItemId=3028750268",
+    "link": "https://link.coupang.com/a/gu3iMdMryS",
+    "rocket": true
+  },
+  "perillaoil": {
+    "name": "해표 참진한 들기름",
+    "price": 8020,
+    "url": "https://www.coupang.com/vp/products/14048?itemId=41036&vendorItemId=3000014831",
+    "link": "https://link.coupang.com/a/gu3iMl7YFE",
+    "rocket": true
+  },
+  "garlic": {
+    "name": "곰곰 냉동 다진마늘",
+    "price": 4940,
+    "url": "https://www.coupang.com/vp/products/5126479755?itemId=7011874807&vendorItemId=74304100915",
+    "link": "https://link.coupang.com/a/gu3iWQIANx",
+    "rocket": true
+  },
+  "potato": {
+    "name": "국내산 강원도 수미 감자 햇감자",
+    "price": 7400,
+    "url": "https://www.coupang.com/vp/products/8802272872?itemId=28895866192&vendorItemId=95543824686",
+    "link": "https://link.coupang.com/a/gu3iWVAZgG",
+    "rocket": false
+  },
+  "sweetpotato": {
+    "name": "국내산 한입 꿀고구마(60g이하)",
+    "price": 11000,
+    "url": "https://www.coupang.com/vp/products/7693878637?itemId=20581549223&vendorItemId=87656679613",
+    "link": "https://link.coupang.com/a/gu3iW05bXM",
+    "rocket": false
+  },
+  "mushroom": {
+    "name": "국내산 친환경 느타리버섯",
+    "price": 3980,
+    "url": "https://www.coupang.com/vp/products/2234215098?itemId=11262440340&vendorItemId=78539400522",
+    "link": "https://link.coupang.com/a/gu3iW4CWaG",
+    "rocket": true
+  },
+  "shrimp": {
+    "name": "[로켓프레시] 곰곰 냉동 흰다리 새우살 (냉동)",
+    "price": 13790,
+    "url": "https://www.coupang.com/vp/products/7621402287?itemId=20207001761&vendorItemId=87297253318",
+    "link": "https://link.coupang.com/a/gu3iW9MVLU",
+    "rocket": true
+  },
+  "fishcake": {
+    "name": "[로켓프레시] 고래사어묵 생선살 듬뿍 사각어묵",
+    "price": 3410,
+    "url": "https://www.coupang.com/vp/products/8276882133?itemId=23859044623&vendorItemId=90882299160",
+    "link": "https://link.coupang.com/a/gu3iXeqk4O",
+    "rocket": true
+  },
+  "seaweed": {
+    "name": "광천김 참신선해 자른 미역, 100g, 2개",
+    "price": 5980,
+    "url": "https://www.coupang.com/vp/products/7701515139?itemId=20688606763&vendorItemId=87760273646",
+    "link": "https://link.coupang.com/a/gu3iXkpi7o",
+    "rocket": true
+  },
+  "konjac": {
+    "name": "한성기업 실곤약",
+    "price": 6930,
+    "url": "https://www.coupang.com/vp/products/2438068?itemId=8848785&vendorItemId=3012500895",
+    "link": "https://link.coupang.com/a/gu3iXrkQzQ",
+    "rocket": true
+  },
+  "milk": {
+    "name": "서울우유 1급A우유",
+    "price": 9590,
+    "url": "https://www.coupang.com/vp/products/130180913?itemId=7459798706&vendorItemId=74750783515",
+    "link": "https://link.coupang.com/a/gu3iXxrsM8",
+    "rocket": true
+  },
+  "cheese": {
+    "name": "[로켓프레시] 앵커 슬라이스 온 슬라이스 체다치즈 80매입, 960g, 1개입, 1개",
+    "price": 13550,
+    "url": "https://www.coupang.com/vp/products/6460333318?itemId=14057860631&vendorItemId=81305227704",
+    "link": "https://link.coupang.com/a/gu3iXCzDrw",
+    "rocket": true
+  },
+  "nuts": {
+    "name": "하루견과 패밀리넛 10p",
+    "price": 8400,
+    "url": "https://www.coupang.com/vp/products/8760848659?itemId=25539272596&vendorItemId=92495959639",
+    "link": "https://link.coupang.com/a/gu3i8jm0aa",
+    "rocket": true
+  },
+  "blueberry": {
+    "name": "곰곰 냉동 블루베리",
+    "price": 10500,
+    "url": "https://www.coupang.com/vp/products/6627109979?itemId=933346428&vendorItemId=5313167830",
+    "link": "https://link.coupang.com/a/gu3i8nJ9r2",
+    "rocket": true
+  },
+  "ginger": {
+    "name": "안동 생강청 목건강 국산100% 일품생강청",
+    "price": 13320,
+    "url": "https://www.coupang.com/vp/products/9619058507?itemId=28723044407&vendorItemId=95663483684",
+    "link": "https://link.coupang.com/a/gu3i8rLKw0",
+    "rocket": true
+  },
+  "noodle": {
+    "name": "오뚜기옛날 국수 소면",
+    "price": 6270,
+    "url": "https://www.coupang.com/vp/products/7851802177?itemId=18170700568&vendorItemId=85320086189",
+    "link": "https://link.coupang.com/a/gu3i8x78Vw",
+    "rocket": true
+  },
+  "curry": {
+    "name": "에스앤비골든 카레 중간매운맛, 220g, 1개",
+    "price": 4290,
+    "url": "https://www.coupang.com/vp/products/6568087462?itemId=23106672102&vendorItemId=95803987398",
+    "link": "https://link.coupang.com/a/gu3i8IkjiC",
+    "rocket": true
+  },
+  "radish": {
+    "name": "국내산 무",
+    "price": 4340,
+    "url": "https://www.coupang.com/vp/products/4618503633?itemId=19223685149&vendorItemId=86340370451",
+    "link": "https://link.coupang.com/a/gu3i8Nh29Q",
+    "rocket": true
+  },
+  "beansprout": {
+    "name": "100% 국산콩 재배 무농약 산소 콩나물",
+    "price": 4830,
+    "url": "https://www.coupang.com/vp/products/9673752909?itemId=28924748351&vendorItemId=95856291354",
+    "link": "https://link.coupang.com/a/gu3i8RjEeO",
+    "rocket": false
+  },
+  "tteok": {
+    "name": "면사랑 쌀떡국떡",
+    "price": 5980,
+    "url": "https://www.coupang.com/vp/products/7106540478?itemId=19345176956&vendorItemId=86458576050",
+    "link": "https://link.coupang.com/a/gu3i8WPfe9",
+    "rocket": true
+  },
+  "soymilk": {
+    "name": "매일두유 99.9 플레인",
+    "price": 15800,
+    "url": "https://www.coupang.com/vp/products/7757115239?itemId=20909737628&vendorItemId=3038558667",
+    "link": "https://link.coupang.com/a/gu3i85sntY",
+    "rocket": true
+  },
+  "sausage": {
+    "name": "[로켓프레시] 다향 후랑크 소시지, 300g, 2개",
+    "price": 7980,
+    "url": "https://www.coupang.com/vp/products/8653681593?itemId=25122686011&vendorItemId=92121986487",
+    "link": "https://link.coupang.com/a/gu3i9aCm5c",
+    "rocket": true
+  },
+  "mayo": {
+    "name": "오뚜기 고소한 골드 마요네스",
+    "price": 5600,
+    "url": "https://www.coupang.com/vp/products/7677600227?itemId=19758437451&vendorItemId=3000044039",
+    "link": "https://link.coupang.com/a/gu3jjTNKns",
+    "rocket": true
+  },
+  "pumpkin": {
+    "name": "[즉시출고] 미니밤호박 미니단호박 단호박 1kg 2kg 3kg, 1개, 미니밤호박 2kg(3~14개)",
+    "price": 10050,
+    "url": "https://www.coupang.com/vp/products/8950187601?itemId=27931580540&vendorItemId=90069373152",
+    "link": "https://link.coupang.com/a/gu3jjY1G3w",
+    "rocket": false
+  },
+  "anchovy": {
+    "name": "[로켓프레시] 바다원 안심이력제 볶음용 남해안 어린이멸치 (냉동)",
+    "price": 5980,
+    "url": "https://www.coupang.com/vp/products/7225747692?itemId=18322090322&vendorItemId=85466838460",
+    "link": "https://link.coupang.com/a/gu3jj23h8u",
+    "rocket": true
+  },
+  "pork": {
+    "name": "곰곰 한돈 앞다리살 수육용 (냉장)",
+    "price": 16910,
+    "url": "https://www.coupang.com/vp/products/1465326792?itemId=2520044798&vendorItemId=70512939979",
+    "link": "https://link.coupang.com/a/gu3jj8xuPA",
+    "rocket": true
+  },
+  "beef": {
+    "name": "곰곰 호주산 소고기 앞다리살 국거리용 (냉장)",
+    "price": 7990,
+    "url": "https://www.coupang.com/vp/products/1473796614?itemId=2532934918&vendorItemId=70525675924",
+    "link": "https://link.coupang.com/a/gu3jkeDDc4",
+    "rocket": true
+  },
+  "onion": {
+    "name": "국내산 양파",
+    "price": 8080,
+    "url": "https://www.coupang.com/vp/products/6258806325?itemId=8339724411&vendorItemId=75627534291",
+    "link": "https://link.coupang.com/a/gu3jkiFeh2",
+    "rocket": true
+  },
+  "carrot": {
+    "name": "당일발송 야채삼촌 제주 밀양 강원도 햇당근 흙당근 당근",
+    "price": 7900,
+    "url": "https://www.coupang.com/vp/products/9555702008?itemId=28513172024&vendorItemId=84349037585",
+    "link": "https://link.coupang.com/a/gu3jkoIDfg",
+    "rocket": false
+  },
+  "greenonion": {
+    "name": "국내산 절단대파",
+    "price": 3500,
+    "url": "https://www.coupang.com/vp/products/4697181154?itemId=7009507635&vendorItemId=74301753439",
+    "link": "https://link.coupang.com/a/gu3jkt8o1I",
+    "rocket": true
+  },
+  "flour": {
+    "name": "백설 바삭 부침가루",
+    "price": 3910,
+    "url": "https://www.coupang.com/vp/products/8244603080?itemId=171382&vendorItemId=3000094871",
+    "link": "https://link.coupang.com/a/gu3jkzmlHM",
+    "rocket": true
+  },
+  "honey": {
+    "name": "산내들농원 사양벌꿀",
+    "price": 10600,
+    "url": "https://www.coupang.com/vp/products/8243951010?itemId=470927997&vendorItemId=4176842060",
+    "link": "https://link.coupang.com/a/gu3jkENWq4",
+    "rocket": true
+  }
+}
