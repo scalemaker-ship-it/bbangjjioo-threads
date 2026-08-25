@@ -28,26 +28,34 @@ jobs:
           import os, requests
           uid, tok = os.environ["UID"], os.environ["TOK"]
           limit = os.environ.get("LIMIT") or "25"
-          fields = "id,media_type,permalink,text,timestamp,link_attachment_url,is_reply"
-          r = requests.get(f"https://graph.threads.net/v1.0/{uid}/threads",
-                           params={"fields": fields, "limit": limit, "access_token": tok}, timeout=30)
-          print("HTTP", r.status_code)
-          data = r.json()
-          if "error" in data:
-              print(data); raise SystemExit(1)
-          for p in data.get("data", []):
-              txt = (p.get("text") or "").replace("\n", " ⏎ ")
-              has_link = "link.coupang.com" in txt
-              att = p.get("link_attachment_url")
-              if not has_link:
+          fields = "id,media_type,permalink,text,timestamp,link_attachment_url"
+
+          def fetch(edge):
+              r = requests.get(f"https://graph.threads.net/v1.0/{uid}/{edge}",
+                               params={"fields": fields, "limit": limit, "access_token": tok}, timeout=30)
+              d = r.json()
+              if "error" in d:
+                  print(f"[{edge}] ERROR", d["error"].get("message"))
+                  return []
+              print(f"[{edge}] {len(d.get('data', []))}건")
+              return d.get("data", [])
+
+          posts = fetch("threads") + fetch("replies")
+          hits = 0
+          for p in posts:
+              raw = p.get("text") or ""
+              if "link.coupang.com" not in raw:
                   continue
-              # 링크가 텍스트 마지막인가?
-              last = (p.get("text") or "").rstrip().split("\n")[-1].strip()
+              hits += 1
+              att = p.get("link_attachment_url")
+              last = raw.rstrip().split("\n")[-1].strip()
               ends_with_link = last.startswith("https://link.coupang.com")
               print("=" * 70)
-              print(f"id={p['id']}  {p.get('timestamp')}")
-              print(f"  썸네일카드: {'✅ 있음' if att else '❌ 없음'}   link_attachment_url={att}")
+              print(f"id={p['id']}  {p.get('timestamp')}  media_type={p.get('media_type')}")
+              print(f"  썸네일카드: {'있음 O' if att else '없음 X'}   link_attachment_url={att}")
               print(f"  링크로끝남: {'예' if ends_with_link else '아니오'}")
               print(f"  permalink: {p.get('permalink')}")
-              print(f"  text: {txt[:220]}")
+              print(f"  text: {raw[:200].replace(chr(10), ' | ')}")
+          print("=" * 70)
+          print(f"쿠팡 링크 포함 게시물 {hits}건 점검 완료")
           PY
