@@ -1,21 +1,17 @@
-name: 빵찌 스레드 자동 게시 (하루 2회)
+name: 빵찌 스레드 자동 게시 (오전 07시)
 
-# 하루 2회 발행. GitHub Actions 크론은 UTC 기준 (KST = UTC+9).
+# 하루 1회 발행. GitHub Actions 크론은 UTC 기준 (KST = UTC+9).
 #   오전 슬롯: 07:00 KST = 22:00 UTC 전날  → "0 22 * * 0-5"  (KST 월~토)
-#   심야 슬롯: 22:00 KST = 13:00 UTC 당일  → "0 13 * * 1-6"  (KST 월~토)
+# 2026-08-26: 계정 전체를 07(요일주제) / 20(꿀템) / 23(레시피) 3슬롯으로 정리하며
+# 심야 22시 슬롯을 없앴다. 대신 요일 배정을 6주제 한 바퀴로 다시 깔았다(threads_post.py).
 #
-# 각 실행은 시작 직후 랜덤 지연을 줘서 게시 시각을 사람처럼 분산시킨다.
-#   오전: 0~120분 → 07:00~09:00 KST 사이 게시
-#   심야: 0~90분  → 22:00~23:30 KST 사이 게시
-# 심야 지연 상한을 90분으로 둔 이유: GitHub 크론은 혼잡할 때 수십 분 늦게 뜨는데,
-# 자정을 넘기면 날짜가 바뀌어 다음 날 주제로 발행돼버린다. 23:30 + 여유 30분.
+# 정각에 딱 맞춰 올리면 봇 티가 나므로 분 단위를 랜덤으로 흩는다: 0~59분 → 07:00~07:59 KST.
 #
 # 슬롯은 크론 식으로 명시 전달한다. 스크립트의 시각 자동 판별에 맡기면
-# 크론이 늦게 떠 자정을 넘겼을 때 슬롯이 morning 으로 뒤집힐 수 있다.
+# 크론이 늦게 떠 자정을 넘겼을 때 슬롯이 뒤집힐 수 있다.
 on:
   schedule:
     - cron: "0 22 * * 0-5"    # 오전 슬롯 (KST 월~토 07:00)
-    - cron: "0 13 * * 1-6"    # 심야 슬롯 (KST 월~토 22:00)
   workflow_dispatch:          # 수동 실행 (테스트용)
     inputs:
       slot:
@@ -39,17 +35,10 @@ jobs:
         run: pip install -r requirements.txt
 
       # 크론 실행일 때만 랜덤 지연 (수동 실행은 즉시)
-      - name: 랜덤 지연 (게시 시각 분산)
+      - name: 랜덤 지연 (분 단위 랜덤화)
         if: github.event_name == 'schedule'
-        env:
-          SCHEDULE: ${{ github.event.schedule }}
         run: |
-          if [ "$SCHEDULE" = "0 22 * * 0-5" ]; then
-            MAX=7200   # 오전: 0~120분
-          else
-            MAX=5400   # 심야: 0~90분
-          fi
-          DELAY=$((RANDOM % MAX))
+          DELAY=$((RANDOM % 3540))   # 0~59분
           echo "약 $((DELAY / 60))분 대기 후 게시합니다."
           sleep $DELAY
 
@@ -59,7 +48,7 @@ jobs:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           # 크론이면 크론 식으로 슬롯 결정, 수동이면 입력값(비었으면 스크립트 자동 판별)
-          SLOT: ${{ github.event_name == 'schedule' && (github.event.schedule == '0 22 * * 0-5' && 'morning' || 'evening') || inputs.slot }}
+          SLOT: ${{ github.event_name == 'schedule' && 'morning' || inputs.slot }}
         run: |
           if [ -n "$SLOT" ]; then
             python threads_post.py --slot "$SLOT"

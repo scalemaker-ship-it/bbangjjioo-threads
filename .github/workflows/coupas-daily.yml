@@ -1,14 +1,15 @@
-name: 쿠파스 하루 3회 자동 게시
+name: 쿠파스 자동 게시 (오후 8시)
 
-# 큐(queue.json)에서 맨 앞 1건씩 하루 3번 자동 게시.
-# 07:00 / 20:00 / 23:00 KST = 22:00 / 11:00 / 14:00 UTC.
+# 큐(queue.json)에서 맨 앞 1건씩 하루 1번 자동 게시.
+# 20:00 KST = 11:00 UTC. 분 단위는 0~59분 랜덤으로 흩는다(봇 티 방지).
+# 2026-08-26: 계정 전체 07(요일주제) / 20(꿀템) / 23(레시피) 3슬롯으로 정리.
 # (GitHub 무료 크론은 혼잡 시 수십 분 늦을 수 있음)
+# 2026-08-26 사용자 결정: **꿀템(쿠파스) 자동 발행 중단.**
+# 계정은 요일주제(07시) + 레시피(11·15·18시)로 간다. 꿀템은 크론을 떼고
+# 수동 실행만 남긴다. queue.json 은 지우지 않았으니 되살리려면 아래 schedule 만 복구하면 된다.
+#   (이전 설정: cron "0 22 * * *" 07시 / "0 11 * * *" 20시 / "0 14 * * *" 23시 KST)
 on:
-  schedule:
-    - cron: "0 22 * * *"   # 07:00 KST
-    - cron: "0 11 * * *"   # 20:00 KST
-    - cron: "0 14 * * *"   # 23:00 KST
-  workflow_dispatch:        # 수동 실행(테스트)
+  workflow_dispatch:        # 수동 실행 전용
 
 permissions:
   contents: write
@@ -23,6 +24,13 @@ jobs:
           python-version: "3.12"
       - name: requests 설치
         run: pip install requests
+      - name: 랜덤 지연 (분 단위 랜덤화)
+        if: github.event_name == 'schedule'
+        run: |
+          DELAY=$((RANDOM % 3540))   # 0~59분
+          echo "약 $((DELAY / 60))분 대기 후 게시합니다."
+          sleep $DELAY
+
       - name: 큐에서 1건 게시
         env:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
