@@ -70,9 +70,26 @@ def main() -> None:
         chosen[key] = best
         print(f"  {key}: {best['name'][:45]} / {best['price']}원 {'로켓' if best.get('rocket') else ''}")
 
-    # 딥링크는 한 번에 일괄 변환(호출 수 절약)
+    # 딥링크는 10개씩 끊어서 변환한다.
+    # ⚠️ 50개를 한 번에 보내면 API가 통째로 실패한다(2026-08-25 실측: 50/50 실패).
+    import time as _time
+
     urls = [b["url"] for b in chosen.values()]
-    mapping = deeplink(urls) if urls else {}
+    mapping = {}
+    CHUNK = 10
+    for i in range(0, len(urls), CHUNK):
+        batch = urls[i:i + CHUNK]
+        got = deeplink(batch)
+        if not got:  # 레이트리밋일 수 있으니 한 번 쉬고 재시도
+            _time.sleep(5)
+            got = deeplink(batch)
+        if not got:  # 그래도 안 되면 1개씩
+            for u in batch:
+                got.update(deeplink([u]))
+                _time.sleep(1)
+        mapping.update(got)
+        print(f"  딥링크 {i + len(batch)}/{len(urls)} — 누적 성공 {len(mapping)}")
+        _time.sleep(2)
     for key, best in chosen.items():
         link = mapping.get(best["url"])
         if not link:
