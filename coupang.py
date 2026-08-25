@@ -9,7 +9,7 @@
 
 CLI:
   python coupang.py search "틈새 수납 카트|실리콘 밀폐 뚜껑"   # '|'로 여러 키워드
-  python coupang.py deeplink "https://www.coupang.com/vp/products/123"
+  python coupang.py deeplink "URL1|URL2|URL3"   # '|'로 여러 개
 """
 
 from __future__ import annotations
@@ -132,7 +132,12 @@ def _cli() -> None:
                 print(f"     URL: {p['url']}")
                 print(f"     IMG: {p['image']}")
     elif cmd == "deeplink":
-        print(deeplink([arg]))
+        # '|' 로 여러 URL 을 한 번에 변환한다(대량 예약 시 dispatch 횟수를 줄이려고).
+        urls = [u.strip() for u in arg.split("|") if u.strip()]
+        mapping = deeplink(urls)
+        for u in urls:
+            print(f"MAP\t{u}\t{mapping.get(u, '(실패)')}")
+        print(f"총 {len(urls)}개 중 {len(mapping)}개 변환")
     else:
         print(f"알 수 없는 명령: {cmd}")
 
