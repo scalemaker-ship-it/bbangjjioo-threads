@@ -1,0 +1,50 @@
+egg	계란 30구
+oat	롤드오트 오트밀
+yogurt	그릭요거트 무가당
+oyster	굴소스
+bread	식빵
+container	밀폐용기 반찬통
+cucumber	오이
+tuna	참치캔 살코기
+spam	스팸 클래식
+rice	햇반 즉석밥
+dumpling	냉동만두
+tofu	두부
+chicken	닭가슴살
+gim	김자반
+ramen	라면 멀티팩
+kimchi	포기김치
+gochujang	고추장
+soysauce	진간장
+sesameoil	참기름
+perillaoil	들기름
+garlic	다진마늘
+potato	감자
+sweetpotato	고구마
+mushroom	느타리버섯
+shrimp	냉동 새우살
+fishcake	어묵
+seaweed	건미역
+konjac	곤약면
+milk	우유
+cheese	슬라이스치즈
+nuts	견과류 하루견과
+blueberry	냉동블루베리
+ginger	생강청
+noodle	소면
+curry	카레가루
+radish	무
+beansprout	콩나물
+tteok	떡국떡
+soymilk	무가당 두유
+sausage	비엔나소시지
+mayo	마요네즈
+pumpkin	단호박
+anchovy	볶음용 잔멸치
+pork	돼지고기 앞다리살
+beef	소고기 국거리
+onion	양파
+carrot	당근
+greenonion	대파
+flour	부침가루
+honey	꿀

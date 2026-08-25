@@ -1,0 +1,30 @@
+name: 레시피 대표재료 카탈로그 수집
+
+# 수동 실행. recipe/keywords.txt 의 키워드로 쿠팡 상품을 골라 딥링크까지 붙여
+# recipe/products.json 에 저장·커밋한다. 이미 있는 키는 건드리지 않는다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: 카탈로그 수집
+        env:
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+        run: python recipe/fetch_recipe_products.py
+      - name: 커밋
+        run: |
+          git config user.name "recipe-bot"
+          git config user.email "recipe-bot@users.noreply.github.com"
+          git add recipe/products.json
+          git diff --quiet --cached || (git commit -m "레시피 대표재료 카탈로그 수집" && (git push || (git pull --rebase && git push)))
