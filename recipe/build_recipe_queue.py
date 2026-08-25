@@ -43,6 +43,27 @@ LAYOUT = {
 TOPICS = [t for t in _ALL_TOPICS if t[0] not in EXCLUDE]
 
 
+# 스레드는 **답글이 노출을 밀어준다.** 매번 같은 말로 끝내면 댓글이 안 달리므로
+# 답하기 쉬운 질문을 슬러그 해시로 돌려가며 붙인다(같은 글은 항상 같은 CTA = 재생성해도 안 바뀜).
+CTAS = [
+    "너네는 이거 해봤어? 해본 사람 후기 좀ㅋㅋ",
+    "이거 말고 더 맛있는 조합 아는 사람 댓글 좀ㅠㅠ",
+    "성공하면 댓글로 자랑해줘 진심 궁금함ㄷㄷ",
+    "나만 이렇게 해먹는 거 아니지? 손 들어봐ㅋㅋ",
+    "이거 실패한 사람 있으면 뭐가 문제였는지 말해줘",
+    "다음엔 뭐 알려줄까? 궁금한 거 댓글에 적어줘",
+    "이런 거 더 필요하면 댓글 하나만 남겨줘ㅋㅋ",
+    "너네 집은 이거 어떻게 해먹어? 궁금해ㅠㅠ",
+    "아는 사람만 아는 꿀조합 있으면 공유 좀ㄷㄷ",
+    "해보고 맛있으면 꼭 알려줘 나 기다림ㅋㅋ",
+]
+
+
+def cta_for(slug: str) -> str:
+    """슬러그로 CTA를 고정 선택 — 재생성해도 같은 글엔 같은 문구가 붙는다."""
+    return CTAS[sum(ord(c) for c in slug) % len(CTAS)]
+
+
 def clean_name(name: str) -> str:
     """상품명을 댓글에 쓸 만하게 다듬는다.
 
@@ -81,7 +102,9 @@ def texts_for(t, prod) -> tuple[str, str]:
     slug, title, layout, items, hook, tip, ingredients, pkey = t
     lines = [f"{i}. {name} — {how}" for i, (name, how) in enumerate(items, 1)]
     head = f"📌 {title} 만드는 법" if layout == "single" else f"📌 {title}"
-    main = f"{hook}\n\n{head}\n" + "\n".join(lines) + f"\n\n{tip}\n재료는 댓글에 적어둘게!"
+    # 마무리 = 팁 → 댓글 유도(노출) → 재료 안내(제휴 클릭). 순서가 중요하다.
+    main = (f"{hook}\n\n{head}\n" + "\n".join(lines)
+            + f"\n\n{tip}\n\n{cta_for(slug)}\n👇재료는 댓글에 적어뒀어")
 
     p = prod[pkey]
     ing = "\n".join(f"• {x}" for x in ingredients)
