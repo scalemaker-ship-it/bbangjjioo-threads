@@ -1,0 +1,53 @@
+name: 스레드 게시물 점검 (썸네일 카드 확인)
+
+# 수동 실행. 최근 게시물들의 link_attachment_url 을 찍어
+# 쿠팡 링크에 미리보기 썸네일 카드가 실제로 붙었는지 확인한다.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "최근 몇 건 조회"
+        type: string
+        default: "25"
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: 최근 게시물 점검
+        env:
+          UID: ${{ secrets.THREADS_USER_ID }}
+          TOK: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          python - <<'PY'
+          import os, requests
+          uid, tok = os.environ["UID"], os.environ["TOK"]
+          limit = os.environ.get("LIMIT") or "25"
+          fields = "id,media_type,permalink,text,timestamp,link_attachment_url,is_reply"
+          r = requests.get(f"https://graph.threads.net/v1.0/{uid}/threads",
+                           params={"fields": fields, "limit": limit, "access_token": tok}, timeout=30)
+          print("HTTP", r.status_code)
+          data = r.json()
+          if "error" in data:
+              print(data); raise SystemExit(1)
+          for p in data.get("data", []):
+              txt = (p.get("text") or "").replace("\n", " ⏎ ")
+              has_link = "link.coupang.com" in txt
+              att = p.get("link_attachment_url")
+              if not has_link:
+                  continue
+              # 링크가 텍스트 마지막인가?
+              last = (p.get("text") or "").rstrip().split("\n")[-1].strip()
+              ends_with_link = last.startswith("https://link.coupang.com")
+              print("=" * 70)
+              print(f"id={p['id']}  {p.get('timestamp')}")
+              print(f"  썸네일카드: {'✅ 있음' if att else '❌ 없음'}   link_attachment_url={att}")
+              print(f"  링크로끝남: {'예' if ends_with_link else '아니오'}")
+              print(f"  permalink: {p.get('permalink')}")
+              print(f"  text: {txt[:220]}")
+          PY
