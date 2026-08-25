@@ -38,13 +38,23 @@ def create(uid, tok, fields):
     return r.json()["id"]
 
 
-def wait_ready(cid, tok, tries=12):
+def wait_ready(cid, tok, tries=12, min_wait=30):
+    """컨테이너가 FINISHED 될 때까지 대기한다.
+
+    ⚠️ status=FINISHED 가 떠도 곧바로 publish 하면 code 24 "Media Not Found" 가 난다
+    (2026-08-25 실측). 스레드 API 권장대로 **생성 후 최소 30초**는 기다린 뒤 게시한다.
+    """
+    started = time.monotonic()
     for i in range(tries):
         r = requests.get(f"{API}/{cid}", params={"fields": "status,error_message", "access_token": tok}, timeout=30)
         s = r.json()
         st = s.get("status")
         print(f"  상태[{i}]: {st} {s.get('error_message', '')}")
         if st == "FINISHED":
+            remain = min_wait - (time.monotonic() - started)
+            if remain > 0:
+                print(f"  FINISHED — 게시 전 안전 대기 {remain:.0f}초 (Media Not Found 방지)")
+                time.sleep(remain)
             return True
         if st == "ERROR":
             print("[컨테이너 ERROR]", s)
@@ -128,7 +138,7 @@ def main():
     if reply_text:
         time.sleep(3)
         rcid = create(uid, tok, {"media_type": "TEXT", "text": reply_text, "reply_to_id": main_id})
-        wait_ready(rcid, tok, tries=6)
+        wait_ready(rcid, tok, tries=6, min_wait=30)
         rid = publish(uid, tok, rcid)
         print("댓글 게시 완료:", rid)
         # 썸네일 카드는 수수료의 전제조건 — 붙었는지 반드시 확인한다.
