@@ -24,6 +24,33 @@ OUT = os.path.join(DIR, "products.json")
 LO, HI = 3000, 20000
 
 
+def clean_url(url: str) -> str:
+    """검색 API가 주는 추적 URL을 딥링크가 받아주는 **깨끗한 상품 URL**로 바꾼다.
+
+    ⚠️ search 결과의 productUrl 은 이미 어필리에이트 추적 링크
+    (link.coupang.com/re/AFFSDP?...pageKey=..&itemId=..&vendorItemId=..) 이고,
+    이걸 그대로 deeplink API 에 넣으면 **전부 실패한다**(2026-08-25 실측 50/50 실패).
+    pageKey/itemId/vendorItemId 를 뽑아 www.coupang.com/vp/products/... 형태로 재조립한다.
+    """
+    from urllib.parse import parse_qs, urlparse
+
+    if "/vp/products/" in url:
+        return url
+    q = parse_qs(urlparse(url).query)
+    page = (q.get("pageKey") or [""])[0]
+    if not page:
+        return url
+    item = (q.get("itemId") or [""])[0]
+    vendor = (q.get("vendorItemId") or [""])[0]
+    out = f"https://www.coupang.com/vp/products/{page}"
+    params = []
+    if item:
+        params.append(f"itemId={item}")
+    if vendor:
+        params.append(f"vendorItemId={vendor}")
+    return out + ("?" + "&".join(params) if params else "")
+
+
 def pick(items: list[dict]) -> dict | None:
     if not items:
         return None
@@ -74,6 +101,8 @@ def main() -> None:
     # ⚠️ 50개를 한 번에 보내면 API가 통째로 실패한다(2026-08-25 실측: 50/50 실패).
     import time as _time
 
+    for b in chosen.values():
+        b["url"] = clean_url(b["url"])
     urls = [b["url"] for b in chosen.values()]
     mapping = {}
     CHUNK = 10
