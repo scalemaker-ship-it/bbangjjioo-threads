@@ -61,6 +61,35 @@ def publish(uid, tok, cid):
     return r.json()["id"]
 
 
+def verify_thumbnail(post_id, tok, tries=6):
+    """댓글에 쿠팡 링크 미리보기 썸네일 카드가 실제로 붙었는지 확인한다.
+
+    썸네일 카드가 안 뜨면 클릭이 안 나고 수수료를 못 받는다 → 발행할 때마다 반드시 확인.
+    (링크의 위치·순서는 무관함이 실측됨(2026-08-25, 18/18 카드 정상). 진짜 조건은
+     링크가 살아 있어 스레드가 미리보기를 뽑아낼 수 있는가다.)
+    카드 생성은 몇 초 늦을 수 있어 재시도한다.
+    """
+    for i in range(tries):
+        r = requests.get(
+            f"{API}/{post_id}",
+            params={"fields": "link_attachment_url,permalink", "access_token": tok},
+            timeout=30,
+        )
+        d = r.json()
+        att = d.get("link_attachment_url")
+        if att:
+            print(f"✅ 썸네일 카드 확인: {att}")
+            return True
+        print(f"  썸네일 대기[{i}]…")
+        time.sleep(5)
+    print("=" * 60)
+    print("⚠️ 경고: 댓글에 링크 썸네일 카드가 안 붙었다.")
+    print("   → 클릭이 안 나서 수수료를 못 받는다. 딥링크가 죽었는지 확인하고,")
+    print("     필요하면 링크를 다시 발급해 앱에서 댓글을 수정할 것.")
+    print("=" * 60)
+    return False
+
+
 def main():
     uid = require("THREADS_USER_ID")
     tok = require("THREADS_ACCESS_TOKEN")
@@ -94,6 +123,7 @@ def main():
     main_id = publish(uid, tok, cid)
     print("본문 게시 완료:", main_id)
 
+    thumbnail_ok = True
     reply_text = item.get("reply", "")
     if reply_text:
         time.sleep(3)
@@ -101,11 +131,17 @@ def main():
         wait_ready(rcid, tok, tries=6)
         rid = publish(uid, tok, rcid)
         print("댓글 게시 완료:", rid)
+        # 썸네일 카드는 수수료의 전제조건 — 붙었는지 반드시 확인한다.
+        time.sleep(5)
+        if not verify_thumbnail(rid, tok):
+            thumbnail_ok = False
 
     data["items"] = items[:idx] + items[idx + 1:]
     with open(QUEUE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"게시 완료. 남은 큐: {len(data['items'])}건. 메인 ID: {main_id}")
+    if not thumbnail_ok:
+        sys.exit("[실패] 게시는 됐지만 썸네일 카드가 안 붙었다 — 링크 점검 필요(위 경고 참조).")
 
 
 if __name__ == "__main__":

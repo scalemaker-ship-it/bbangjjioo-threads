@@ -65,15 +65,11 @@ def main() -> None:
         n_link = reply_text.count(args.link)
         if n_link != 2:
             errors.append(f"댓글(2/2): 쿠팡 링크가 2번 들어가야 함 (현재 {n_link}번)")
-        # ⚠️ 순서 절대 규칙(prd §3): 공정위문구 → 링크×2 → 끝.
-        # 텍스트가 링크로 끝나야 스레드가 썸네일 카드를 붙이고, 그래야 수수료가 붙는다.
-        if not reply_text.rstrip().endswith(args.link):
-            errors.append(
-                "댓글(2/2): 텍스트가 쿠팡 링크로 끝나야 함 — 링크 아래에 다른 줄(공정위 문구 등)이 "
-                "있으면 썸네일 카드가 안 뜨고 수수료를 못 받는다 (prd §3 순서 절대 규칙). "
-                "순서: 공정위문구 → 링크 → 링크 → 끝")
-        if reply_text.index(DISCLOSURE) > reply_text.index(args.link):
-            errors.append("댓글(2/2): 공정위 문구가 링크보다 아래에 있음 — 링크 '바로 위'로 올려야 함 (prd §3)")
+        # 링크 위치·순서는 썸네일과 무관하다(2026-08-25 실측: 18/18 전부 카드 붙음).
+        # 진짜 조건은 '링크가 살아 있어서 스레드가 미리보기를 만들 수 있는가' → 발행 후
+        # publish_recipe.py 가 link_attachment_url 로 검증한다.
+        if not args.link.startswith("https://link.coupang.com/a/"):
+            errors.append(f"댓글(2/2): 쿠팡 딥링크(/a/ 짧은 링크)가 아님: {args.link}")
 
     # 이미지가 로컬 images/ 에 실제로 있는지 (커밋 전 누락 방지)
     local_png = os.path.join(DIR, "images", f"{args.slug}.png")

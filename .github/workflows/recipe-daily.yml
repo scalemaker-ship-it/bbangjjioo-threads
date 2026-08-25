@@ -36,7 +36,10 @@ jobs:
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
         run: python recipe/publish_recipe.py
 
+      # 썸네일 미부착이면 게시 스텝이 실패로 끝나지만, 글은 이미 나갔으므로
+      # 큐 커밋은 반드시 해야 한다(안 하면 내일 같은 글이 또 나감).
       - name: 큐 소비 커밋
+        if: always()
         run: |
           git config user.name "recipe-bot"
           git config user.email "recipe-bot@users.noreply.github.com"
