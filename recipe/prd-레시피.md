@@ -257,23 +257,62 @@ Threads API는 **공개 URL**만 받는다. 힉스필드 CDN 대신 **레포 자
 python3 -c "import json;print(len(json.load(open('recipe/recipe_queue.json'))['items']))"
 ```
 
-## 9. 제작 흐름 (대량 생산 기준)
+## 9. 제작 흐름 — **이 순서를 그대로 반복한다**
 
-1. **주제 스펙 작성** — `topics_spec.py` 에 항목 추가.
-   `(slug, 제목, 레이아웃, items, 후킹, 마무리팁, [재료줄], 제품키)`.
-   포맷을 섞을 것(§3). 제목에 숫자 필수(§2).
-2. **대표재료 카탈로그** — 새 제품키가 필요하면 `keywords.txt` 에 추가 후
-   `gh workflow run recipe-products.yml` (이미 있는 키는 안 건드림).
-3. **프롬프트·텍스트 생성** — `python3 build_recipe_queue.py prompts && ... texts`.
-   500자 초과가 있으면 스펙을 줄인다.
-4. **카드 대량 생성** — `./gen_worker.sh fwd 3 &`, `./gen_worker.sh rev 3 &` 등 병렬로.
-   워커는 이미 있는 카드를 건너뛰므로 여러 개 띄워도 안전.
-   ⚠️ 초반엔 빠르다가 **레이트리밋으로 느려진다**(3워커 기준 5분에 9장).
-5. **검수** — §4 체크리스트. 통과분을 `cards/` → `images/` 로 이동.
-6. **큐 적재** — `python3 build_recipe_queue.py queue` (images/ 에 있는 것만 담는다).
-7. **링크 점검** — `python3 check_links.py` 로 딥링크 전수 확인.
-8. **커밋·푸시** — 이미지가 푸시돼야 raw URL 이 산다.
-9. 크론이 하루 3회 자동 발행 + 썸네일 검증.
+> 아래가 검증된 표준 절차다. 단계를 건너뛰면 반드시 사고가 난다(§11 함정 참조).
+
+### 9-1. 스펙 작성 (`topics_spec.py`)
+```
+(slug, 제목, 레이아웃, items, 후킹, 마무리팁, [재료줄], 제품키)
+```
+- 레이아웃은 `single` / `grid2x2` / `grid2x3` / `rank3`. **단일↔묶음 교대**(§3).
+- `single` 이면 items = **5단계**, 각 단계에 **계량·온도·시간**을 넣는다.
+- 후킹은 §3 6유형 중 하나. 제목엔 숫자 또는 요리명.
+- ⚠️ heredoc 으로 쓸 때 후킹의 줄바꿈은 **`\n`** (`\\n` 아님, `\n`). 바깥 파이썬 문자열이
+  `\n` 을 실제 줄바꿈으로 풀어 SyntaxError 가 난다 → 반드시 이스케이프.
+
+### 9-2. 대표재료 (`products.json`)
+새 제품키가 필요할 때만: `keywords.txt` 에 `키<TAB>검색어` 추가 →
+`gh workflow run recipe-products.yml`. 기존 키는 건드리지 않는다.
+
+### 9-3. 생성
+```bash
+python3 build_recipe_queue.py prompts   # cards.tsv
+python3 build_recipe_queue.py texts     # texts/*.main, *.reply + 500자 검사
+```
+
+### 9-4. 카드 대량 생성
+```bash
+./gen_worker.sh fwd 3 &  ./gen_worker.sh rev 3 &  ./gen_worker.sh mid 3 &
+```
+- 워커는 이미 있는 카드를 건너뛴다 → **여러 개 띄워도 안전, 죽으면 다시 띄우면 된다.**
+- codex 레이트리밋으로 느려진다(3워커 기준 5분에 9장). 워커가 조용히 죽으므로
+  **남은 건수를 주기적으로 확인하고 재가동**할 것:
+  ```bash
+  python3 -c "import os,build_recipe_queue as b;h={f[:-4] for f in os.listdir('images')+os.listdir('cards') if f.endswith('.png')};print(sum(1 for t in b.TOPICS if t[0] not in h))"
+  ```
+
+### 9-5. 검수
+카드를 **Read 로 눈으로** 본다. 체크리스트는 §4.
+핵심: 한글 안 깨짐 / 메뉴·단계명이 스펙과 동일 / 개수 일치 / 글자 안 묻힘.
+
+### 9-6. 승격 → 적재 → 점검
+```bash
+for f in cards/*.png; do mv "$f" images/; done      # 검수 통과분만
+python3 build_recipe_queue.py queue                  # images/ 에 있는 것만 담긴다
+python3 check_links.py                               # 딥링크 전수 생사 확인
+```
+
+### 9-7. 커밋·푸시 (이미지가 푸시돼야 raw URL 이 산다)
+```bash
+git add -A recipe && git commit -m "…"
+git pull --rebase     # ⚠️ 큐 충돌 시 §11 참조 — origin/main 을 기준으로 재구성
+git push
+```
+
+### 9-8. 발행
+크론이 하루 3회 자동 발행한다. 즉시 올리려면 `gh workflow run recipe-daily.yml`.
+로그에 **`✅ 썸네일 카드 확인`** 이 떠야 성공이다.
 
 ## 10. 상태 (2026-08-26)
 
@@ -284,3 +323,17 @@ python3 -c "import json;print(len(json.load(open('recipe/recipe_queue.json'))['i
 - ✅ 대표재료 50종 딥링크 **50/50 생존 확인**.
 - 🔄 단일형 카드 51장 생성 중(묶음 65장은 완료).
 - 🔜 큐 소진 전 다음 배치 스펙 작성. 단일형은 계량·온도·시간을 반드시 넣을 것.
+
+## 11. 함정 (전부 실측 확인 — 다시 밟지 말 것)
+
+| 증상 | 원인 / 해결 |
+|---|---|
+| publish 400 `code 24 Media Not Found` | 컨테이너가 `FINISHED` 여도 즉시 게시하면 실패. **생성 후 최소 30초 대기**(`wait_ready(min_wait=30)`). |
+| 딥링크 변환 전부 실패 | 검색 API 의 `productUrl` 은 이미 어필리에이트 추적링크(AFFSDP). **`/vp/products/` 형태로 재조립** 필요. 또 **10개씩 끊어서** 보낼 것(50개 일괄은 통째로 실패). |
+| 링크 점검이 전부 403 | 쿠팡이 봇 본문 요청을 막는다. 리다이렉트를 **따라가지 말고 Location 헤더**만 본다. 살아있으면 `/vp/products/...`, 죽었으면 홈으로 튕김. |
+| 카드 메뉴가 본문과 다름 | 프롬프트에 한글 이름을 안 박음. `topics_spec.py` 한 곳에서 프롬프트·본문이 같이 나와야 한다. |
+| 상품명이 지저분하게 잘림 | `[로켓프레시]` 머리표·`, 2kg, 1개` 옵션 꼬리 → `clean_name()` 이 처리. |
+| 카드 생성이 멈춤/느려짐 | codex 레이트리밋. 워커가 조용히 죽으니 남은 건수 확인 후 재가동(§9-4). |
+| **큐 rebase 충돌** | 크론이 **원격에서** 큐를 소비한다. **`origin/main` 큐를 기준**으로 잡고 새 항목만 얹을 것. 로컬 걸 밀면 이미 발행된 글이 되살아나 **중복 발행**된다. |
+| 항목 수가 스펙과 다름 | `build_recipe_queue.EXCLUDE` 가 일부 slug 를 뺀다(같은 소재 연발 방지). 의도된 것. |
+| heredoc 스펙 작성 중 SyntaxError | 바깥 파이썬 문자열이 `\n` 을 풀어버린다. 이스케이프할 것(§9-1). |
