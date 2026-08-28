@@ -99,6 +99,22 @@ def main():
             result = {"ok": True, "link": short}
         elif action == "publish":
             result = do_publish(payload)
+        elif action == "enqueue":
+            # 큐(queue.json)에 세트를 저장 — 크론/수동 발행 때 나감. 커밋은 워크플로 스텝이 한다.
+            main, reply = payload.get("main", ""), payload.get("reply", "")
+            if not main.strip():
+                raise RuntimeError("본문이 비어 있습니다.")
+            images = [u for u in (payload.get("images") or []) if u][:2]
+            with open("queue.json", encoding="utf-8") as f:
+                q = json.load(f)
+            item = {"main": main, "reply": reply, "images": images}
+            if len(images) < 2:
+                item["needs_ai_images"] = True  # 발행기는 사용컷 2장 규격 미달 건을 건너뛴다
+            q.setdefault("items", []).append(item)
+            with open("queue.json", "w", encoding="utf-8") as f:
+                json.dump(q, f, ensure_ascii=False, indent=2)
+            result = {"ok": True, "queued": len(q["items"]),
+                      "note": "사용컷 2장 미만이라 발행기에서 건너뜁니다 — 이미지 채우면 나갑니다." if len(images) < 2 else None}
         else:
             raise RuntimeError(f"알 수 없는 action: {action}")
     except Exception as exc:  # noqa: BLE001
