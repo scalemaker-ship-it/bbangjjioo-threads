@@ -1,0 +1,45 @@
+name: studio
+run-name: studio-${{ inputs.request_id }}
+
+# 쿠파스 스튜디오(coupas-studio.vercel.app) 백엔드 — Vercel 앱이 dispatch 로 호출.
+# 쿠팡·스레드 키는 이 레포 시크릿에만 있으므로, 실제 API 호출은 전부 여기서 실행하고
+# 결과를 studio-<request_id> 아티팩트(result.json)로 돌려준다.
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: "요청 식별자 (Vercel 이 생성)"
+        required: true
+      action:
+        description: "search | deeplink | publish"
+        required: true
+      payload:
+        description: "JSON 문자열"
+        required: false
+        default: "{}"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Run studio action
+        env:
+          STUDIO_ACTION: ${{ inputs.action }}
+          STUDIO_PAYLOAD: ${{ inputs.payload }}
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: python studio_api.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: studio-${{ inputs.request_id }}
+          path: result.json
+          retention-days: 1
