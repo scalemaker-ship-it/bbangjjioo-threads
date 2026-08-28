@@ -1058,6 +1058,12 @@
         "https://ads-partners.coupang.com/image1/rjivsOgoMZj-ZiZtrjyOdxeUAP_6yKeBhLVG-IEiFP6FDK8KVj2KLQLMfMwgsxhLfOi3VdvSLm65SE4Ro5vqSZYrwMimnTE1ZSRFEpds8J8AnoHHVpgigJfjwXj5u9PS8ap-mD_XP9DJarrlSuaVXmr6SaeewhVYcsMG21ir7OtBFszRIfLlOP20YLRqbF21moMnOYzo4cSc54M_tES97msmH1y_h4dGKlwQRpke8XOy77ORZlw9GDaf77w1xo2nLCe7KIJZGdrNGdeidcPpFEuKcsWR-2gGQzca6XlRS93ckLeNJdqBz5kOZ2q0MPGnCPugJ81SbGVshyqw1eUoeGyhIYI0fxX3C6X6J0M="
       ],
       "needs_ai_images": true
+    },
+    {
+      "main": "[스튜디오 테스트] 큐 저장 검증용",
+      "reply": "테스트",
+      "images": [],
+      "needs_ai_images": true
     }
   ]
 }
