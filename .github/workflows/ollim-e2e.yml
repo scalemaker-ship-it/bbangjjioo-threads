@@ -1,0 +1,20 @@
+name: ollim-threads-e2e
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm i axios@1.7.9 --no-save
+      - name: Run Ollim Threads E2E
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          GH_HOST_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node ollim-e2e/run.js
