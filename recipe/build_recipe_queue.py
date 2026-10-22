@@ -155,8 +155,13 @@ def main() -> None:
     if cmd == "queue":
         items = []
         skipped = []
+        # 이미 발행된 slug 는 다시 담지 않는다(images/ 에 카드가 남아 있어도).
+        posted_path = os.path.join(DIR, "posted_slugs.json")
+        posted = set(json.load(open(posted_path, encoding="utf-8"))) if os.path.exists(posted_path) else set()
         for t in TOPICS:
             slug = t[0]
+            if slug in posted:
+                continue
             png = os.path.join(DIR, "images", slug + ".png")
             if not os.path.exists(png):
                 skipped.append(slug)

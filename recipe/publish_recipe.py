@@ -149,6 +149,16 @@ def main():
     data["items"] = items[:idx] + items[idx + 1:]
     with open(QUEUE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    # 발행 완료 slug 기록 — build_recipe_queue.py queue 가 재적재하지 않도록.
+    posted_path = os.path.join(os.path.dirname(QUEUE), "posted_slugs.json")
+    try:
+        posted = json.load(open(posted_path, encoding="utf-8")) if os.path.exists(posted_path) else []
+    except Exception:
+        posted = []
+    if item.get("slug") and item["slug"] not in posted:
+        posted.append(item["slug"])
+        with open(posted_path, "w", encoding="utf-8") as f:
+            json.dump(posted, f, ensure_ascii=False, indent=0)
     print(f"게시 완료. 남은 큐: {len(data['items'])}건. 메인 ID: {main_id}")
     if not thumbnail_ok:
         sys.exit("[실패] 게시는 됐지만 썸네일 카드가 안 붙었다 — 링크 점검 필요(위 경고 참조).")

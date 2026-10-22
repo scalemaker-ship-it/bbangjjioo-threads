@@ -50,5 +50,5 @@ jobs:
         run: |
           git config user.name "recipe-bot"
           git config user.email "recipe-bot@users.noreply.github.com"
-          git add recipe/recipe_queue.json
+          git add recipe/recipe_queue.json recipe/posted_slugs.json
           git diff --quiet --cached || (git commit -m "레시피 큐 소비(1건 게시)" && (git push || (git pull --rebase && git push)))
